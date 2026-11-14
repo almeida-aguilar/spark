@@ -1,56 +1,85 @@
-# scratch-editor: The Scratch Editor Monorepo
+# Spark
 
-If you'd like to use Scratch, please visit the [Scratch website](https://scratch.mit.edu/). You can build your own
-Scratch project by pressing "Create" on that website or by visiting <https://scratch.mit.edu/projects/editor/>.
+PWA gratuita y de código abierto, basada en un fork del editor de Scratch, centrada exclusivamente en LEGO WeDo 2.0.
+Funciona 100 % en local: sin cuentas, sin backend, sin analítica. Los proyectos se guardan en el navegador y se
+importan y exportan como archivos `.sb3`. La conexión con el hub usa la API Web Bluetooth del navegador en lugar de
+Scratch Link.
 
-This is a source code repository for the packages that make up the Scratch editor and a few additional support
-packages. Use this if you'd like to learn about how the Scratch editor works or to contribute to its development.
+> **Aviso de marcas:** Spark es un fork independiente, no afiliado ni respaldado por la Scratch Foundation ni por el
+> Grupo LEGO. LEGO y WeDo son marcas de sus respectivos titulares. Este proyecto se distribuye bajo la licencia
+> AGPL-3.0.
 
-## What's in this repository?
+---
 
-The `packages` directory in this repository contains:
+# Spark
 
-- `scratch-gui` provides the buttons, menus, and other elements that you interact with when creating and editing a
-  project. It's also the "glue" that brings most of the other modules together at runtime.
-- `scratch-media-lib-scripts` builds (or rebuilds) media libraries for the editor.
-- `scratch-paint` provides a way to draw vector (SVG) or bitmap (PNG) images for costumes and backdrops.
-- `scratch-render` draws backdrops, sprites, and clones on the stage.
-- `scratch-storage` helps load project assets like images and sounds. It also provides `ScratchFetch`, a customized
-  wrapper around `fetch`.
-- `scratch-svg-renderer` processes SVG (vector) images for use with Scratch projects.
-- `scratch-vm` is the virtual machine that runs Scratch projects.
-- `task-herder` manages queues of tasks with throttling and concurrency limits.
+Spark is a free, open-source Progressive Web App (PWA) based on a fork of the Scratch editor, focused exclusively on
+LEGO WeDo 2.0. It runs 100 % locally: no accounts, no backend, no analytics. Projects are saved in the browser and can
+be imported and exported as `.sb3` files. The hub connects via the browser's Web Bluetooth API instead of Scratch Link.
 
-_Please add to this list as more packages are migrated to the monorepo._
+> **Trademark notice:** Spark is an independent fork and is not affiliated with or endorsed by the Scratch Foundation
+> or the LEGO Group. LEGO and WeDo are trademarks of their respective owners. This project is distributed under the
+> AGPL-3.0 license.
 
-Each package has its own `README.md` file with more information about that package.
+---
 
-## Monorepo migration
+## Navegadores compatibles / Supported browsers
 
-### What's going on?
+- **Chromium** (Chrome, Edge y derivados, en escritorio y Android). Web Bluetooth está disponible.
+- **Safari, iOS y Firefox:** la app funciona sin hardware, pero la conexión por Web Bluetooth **no está soportada**.
+  Al intentar conectar, se muestra un aviso claro con los navegadores compatibles.
 
-We're migrating the Scratch editor packages into this monorepo. This will allow us to manage all the packages that
-make up the Scratch editor in one place, making  it easier to manage dependencies and make changes that affect
-multiple packages.
+- **Chromium** (Chrome, Edge and derivatives, on desktop and Android). Web Bluetooth is available.
+- **Safari, iOS and Firefox:** the app works without hardware, but Web Bluetooth connection is **not supported**.
+  A clear message is shown when attempting to connect, listing the compatible browsers.
 
-### Why are there only a few packages in this repo?
+---
 
-We're migrating packages in stages. The current plan, which is subject to change, has us migrating repositories in
-four batches. We plan to complete the migration within 2025.
+## Instalación / Installation
 
-### What will happen to the existing repositories?
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/tu-organizacion/spark.git
+   cd spark
+   ```
+2. Instala las dependencias:
+   ```bash
+   npm ci
+   ```
+3. Construye y sirve la app:
+   ```bash
+   npm run build
+   npm run serve
+   ```
+   (o el comando de sirvimiento que defina el paquete `scratch-gui`).
+4. Abre la URL resultante en Chrome o Edge. Para instalar como PWA, usa el botón de instalación del navegador.
 
-The existing repositories will be archived and made read-only. Those repositories contain valuable work and
-information, including but not limited to issues and pull requests. We plan to keep that information available for
-reference, and to selectively migrate it to this new repository.
+---
 
-## Thank you
+## Compartir proyectos / Sharing projects
 
-Scratch would not be what it is today without help from the global community of Scratchers and open-source
-contributors. Thank you for your contributions and support. _[Scratch on!](https://scratch.mit.edu/projects/65347738/fullscreen/)_
+- Los proyectos se guardan localmente en el navegador (IndexedDB) y se pueden exportar como `.sb3`.
+- Para compartir, exporta el `.sb3` y compártelo por los medios que prefieras (email,Drive, USB…).
+- Cualquier `.sb3` exportado por Spark debe abrirse en Scratch sin problemas. Si un proyecto contiene bloques de
+  extensiones no soportadas (por ejemplo micro:bit), el editor mostrará un aviso y cargará lo que pueda.
 
-## Donate
+---
 
-We provide [Scratch](https://scratch.mit.edu) free of charge, and want to keep it that way! Please consider making a
-[donation](https://www.scratchfoundation.org/donate) to support our continued engineering, design, community, and
-resource development efforts. Donations of any size are appreciated. Thank you!
+## Cómo contribuir / Contributing
+
+- Consulta `CONTRIBUTING.md` para ver el flujo de desarrollo (ramas, commits convencionales, tests, lint).
+- Las decisiones arquitectónicas y los cambios de alcance se documentan en `docs/SPARK_DECISIONS.md`.
+- Para integrar cambios upstream de Scratch, sigue las instrucciones de `CONTRIBUTING.md` y revisa los conflictos
+  con cuidado; los cambios de Spark se marcan con el comentario `// SPARK:`.
+
+---
+
+## Licencia y descargos / License and disclaimers
+
+- Este proyecto se distribuye bajo la licencia **AGPL-3.0**. Consulta `LICENSE`, `NOTICE` y `THIRD_PARTY_LICENSES`.
+- La biblioteca multimedia incluye recursos con licencias verificadas; consulta `MEDIA_LICENSES.md` para ver la
+  atribución de cada recurso.
+- Spark se basa en el editor de Scratch, proyecto de código abierto. Créditos y enlace al código fuente visible en
+  la interfaz y en el pie de página.
+- **Descargos:** Spark es un fork independiente, no afiliado ni respaldado por la Scratch Foundation ni por el Grupo
+  LEGO. LEGO y WeDo son marcas de sus respectivos titulares.
