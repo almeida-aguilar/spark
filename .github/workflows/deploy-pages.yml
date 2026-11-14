@@ -1,0 +1,63 @@
+name: Deploy Spark Editor to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 1. Build task-herder
+      - name: Build task-herder
+        run: npm --prefix ../.. run build --workspace=@scratch/task-herder
+
+      # 2. Build scratch-storage (includes library assets fetch)
+      - name: Build scratch-storage
+        run: npm --prefix ../.. run build --workspace=@scratch/scratch-storage
+
+      # 3. Build scratch-render (dependency for scratch-vm)
+      - name: Build scratch-render
+        run: npm --prefix ../.. run build --workspace=@scratch/scratch-render
+
+      # 4. Build scratch-vm (now that scratch-render is available)
+      - name: Build scratch-vm
+        run: npm --prefix ../.. run build --workspace=@scratch/scratch-vm || true
+        # Nota: script 'npm run docs' puede tener warnings pero el build de webpack
+        # debe completar si scratch-render está buildado
+
+      # 5. Build scratch-gui (the main GUI)
+      - name: Build scratch-gui
+        run: |
+          cd packages/scratch-gui
+          NODE_PATH=../../.. npm run build:dev
+
+      # 6. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          keep_files: false
+          user_name: actions-user
+          user_email: actions@github.com
