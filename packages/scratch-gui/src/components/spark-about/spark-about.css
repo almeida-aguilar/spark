@@ -1,0 +1,21 @@
+@import "../../css/colors.css";
+@import "../../css/units.css";
+
+.body {
+    background: $ui-white;
+    padding: 1.5rem 2.25rem;
+    max-width: 40rem;
+    line-height: 1.5;
+}
+
+.title {
+    margin: 0 0 0.5rem;
+}
+
+.body p {
+    margin: 0 0 0.75rem;
+}
+
+.source {
+    font-weight: bold;
+}

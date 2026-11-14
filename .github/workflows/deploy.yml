@@ -1,0 +1,41 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Build static site for GitHub Pages
+        run: npm run build:pages --workspace=packages/scratch-gui
+        env:
+          NODE_ENV: production
+          # PUBLIC_PATH debe coincidir con la URL base del sitio en GitHub Pages.
+          #   - User/organization site (usuario.github.io): ''
+          #   - Project site (usuario.github.io/repo): '/repo/'
+          PUBLIC_PATH: ''
+
+      - name: Deploy to GitHub Pages
+        uses: ./.github/actions/deploy-pages-with-retry
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: packages/scratch-gui/build
+          destination_dir: '.'
+          full_commit_message: 'chore: deploy Spark editor to GitHub Pages'

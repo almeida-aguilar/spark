@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Quad">
+  <!-- Quad, el cuadrado verde: cara "uwu" (ojos "u u" y boquita de gato). -->
+  <rect x="28" y="28" width="64" height="64" rx="14" fill="#59C059"/>
+  <path d="M 43,54 Q 50,60.5 57,54" fill="none" stroke="#202124" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 63,54 Q 70,60.5 77,54" fill="none" stroke="#202124" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 52,64 Q 56,68 60,64 Q 64,68 68,64" fill="none" stroke="#202124" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

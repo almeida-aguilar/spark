@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" role="img" aria-label="Spark">
+  <!-- Amigos de Spark: formas primitivas redondeadas con caras kawaii
+       (líneas y puntos). De izquierda a derecha: círculo (Blip),
+       cuadrado (Quad, cara "uwu") y triángulo (Tria). -->
+  <g>
+    <circle cx="52" cy="63" r="34" fill="#4C97FF"/>
+    <circle cx="42" cy="60" r="4.5" fill="#202124"/>
+    <circle cx="62" cy="60" r="4.5" fill="#202124"/>
+    <path d="M 44,67 Q 52,74 60,67" fill="none" stroke="#202124" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g>
+    <rect x="118" y="31" width="64" height="64" rx="14" fill="#59C059"/>
+    <!-- Ojos cerrados felices ("u u") y boquita de gato -->
+    <path d="M 133,57 Q 140,63.5 147,57" fill="none" stroke="#202124" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 153,57 Q 160,63.5 167,57" fill="none" stroke="#202124" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 142,67 Q 146,71 150,67 Q 154,71 158,67" fill="none" stroke="#202124" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g>
+    <path d="M 228,32 L 262,92 L 194,92 Z" fill="#FF6680" stroke="#FF6680" stroke-width="10" stroke-linejoin="round"/>
+    <circle cx="224" cy="72" r="4.5" fill="#202124"/>
+    <circle cx="242" cy="72" r="4.5" fill="#202124"/>
+    <path d="M 226,79 Q 233,84 240,79" fill="none" stroke="#202124" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

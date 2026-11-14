@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Spark">
+  <!-- Variante monocroma del logo (barra de menú, favicon, icono PWA). -->
+  <path d="M 60.00,17.00 L 72.50,41.35 L 99.84,40.00 L 85.00,63.00 L 99.84,86.00 L 72.50,84.65 L 60.00,109.00 L 47.50,84.65 L 20.16,86.00 L 35.00,63.00 L 20.16,40.00 L 47.50,41.35 Z"
+        fill="currentColor" stroke="currentColor" stroke-width="10" stroke-linejoin="round"/>
+  <!-- Cara: ojos muy separados y sonrisa entre ellos, un poco más abajo. -->
+  <circle cx="42" cy="56" r="4.5" fill="#FFFFFF"/>
+  <circle cx="78" cy="56" r="4.5" fill="#FFFFFF"/>
+  <path d="M 53,62 Q 60,69 67,62" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

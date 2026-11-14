@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- SPARK: disfraz 1 del sprite por defecto (mascota de frente) -->
+  <path d="M 60.00,17.00 L 72.50,41.35 L 99.84,40.00 L 85.00,63.00 L 99.84,86.00 L 72.50,84.65 L 60.00,109.00 L 47.50,84.65 L 20.16,86.00 L 35.00,63.00 L 20.16,40.00 L 47.50,41.35 Z"
+        fill="#FFBF00" stroke="#FFBF00" stroke-width="10" stroke-linejoin="round"/>
+  <!-- Cara: ojos muy separados y sonrisa entre ellos, un poco más abajo -->
+  <circle cx="42" cy="56" r="4.5" fill="#202124"/>
+  <circle cx="78" cy="56" r="4.5" fill="#202124"/>
+  <path d="M 53,62 Q 60,69 67,62" fill="none" stroke="#202124" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
