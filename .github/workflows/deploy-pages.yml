@@ -40,10 +40,6 @@ jobs:
       - name: Build scratch-render
         run: npm run build --workspace=@scratch/scratch-render
 
-      # 4. Build scratch-vm (ahora que scratch-render está buildado)
-      - name: Build scratch-vm
-        run: npm run build --workspace=@scratch/scratch-vm || true
-
       # 5. Build scratch-gui (el GUI principal)
       - name: Build scratch-gui
         run: |
@@ -59,3 +55,4 @@ jobs:
           keep_files: false
           user_name: actions-user
           user_email: actions@github.com
+EOF
