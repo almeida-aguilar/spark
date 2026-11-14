@@ -28,10 +28,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Build the Spark editor GUI (single build step)
-      - name: Build Spark editor
-        run: npm run build:pages --workspace=packages/scratch-gui
+      # 1. Build task-herder (sin dependencias críticas)
+      - name: Build task-herder
+        run: npm run build --workspace=@scratch/task-herder
 
+      # 2. Build scratch-storage (assets de biblioteca)
+      - name: Build scratch-storage
+        run: npm run build --workspace=@scratch/scratch-storage
+
+      # 3. Build scratch-render (dependency clave para scratch-vm)
+      - name: Build scratch-render
+        run: npm run build --workspace=@scratch/scratch-render
+
+      # 4. Build scratch-vm (ahora que scratch-render está buildado)
+      - name: Build scratch-vm
+        run: npm run build --workspace=@scratch/scratch-vm || true
+
+      # 5. Build scratch-gui (el GUI principal)
+      - name: Build scratch-gui
+        run: |
+          cd packages/scratch-gui
+          npm run build:dev
+
+      # 6. Deploy a GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
