@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -20,40 +24,28 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      # 1. Build task-herder
-      - name: Build task-herder
-        run: npm run build --workspace=@scratch/task-herder
+      # Construye TODOS los workspaces en el orden correcto
+      # (task-herder, scratch-storage, scratch-svg-renderer, scratch-render,
+      # scratch-vm, scratch-paint, scratch-gui, etc.), igual que ci.yml.
+      - name: Build all packages
+        run: npm run build
 
-      # 2. Build scratch-storage
-      - name: Build scratch-storage
-        run: npm run build --workspace=@scratch/scratch-storage
-
-      # 3. Build scratch-render
-      - name: Build scratch-render
-        run: npm run build --workspace=@scratch/scratch-render
-
-      # 4. (Opcional) Build scratch-vm, si tu GUI lo necesita
-      # - name: Build scratch-vm
-      #   run: npm run build --workspace=@scratch/scratch-vm
-
-      # 5. Build scratch-gui
-      - name: Build scratch-gui
+      - name: Verify build output
         run: |
-          cd packages/scratch-gui
-          npm run build:dev
+          ls -l packages/scratch-gui/build
+          test -f packages/scratch-gui/build/index.html
 
-      # 6. Deploy a GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./packages/scratch-gui/build
           keep_files: false
-          user_name: actions-user
-          user_email: actions@github.com
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
