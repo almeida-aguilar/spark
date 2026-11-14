@@ -44,6 +44,12 @@ class WebBluetoothSession {
         this._connected = false;
         this._characteristicDidChangeCallbacks = {};
         this._discoverTimeoutID = null;
+    this._clearDiscoverTimeout = function() {
+        if (this._discoverTimeoutID) {
+            clearTimeout(this._discoverTimeoutID);
+            this._discoverTimeoutID = null;
+        }
+    };
         this._queue = Promise.resolve();
     }
 
@@ -364,6 +370,12 @@ class WebBluetoothSession {
         if (this._discoverTimeoutID) {
             clearTimeout(this._discoverTimeoutID);
             this._discoverTimeoutID = null;
+    this._clearDiscoverTimeout = function() {
+        if (this._discoverTimeoutID) {
+            clearTimeout(this._discoverTimeoutID);
+            this._discoverTimeoutID = null;
+        }
+    };
         }
     }
 
