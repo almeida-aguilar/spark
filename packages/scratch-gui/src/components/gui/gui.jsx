@@ -177,7 +177,6 @@ const GUIComponent = props => {
         targetIsStage,
         colorMode,
         theme,
-        setTheme,
         useExternalPeripheralList,
         username,
         avatarBadge,
