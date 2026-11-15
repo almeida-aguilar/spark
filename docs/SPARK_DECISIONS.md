@@ -593,3 +593,56 @@ regenera con `npm run fetch-library-assets`. No se eliminaron los personajes
 de Scratch (Cat, Gobo, etc.) de la biblioteca.
 
 ---
+## D026 — 2026-11-14 — Fase 6: autoguardado, instantáneas y "Continuar donde lo dejaste"
+
+**Contexto.** La Fase 6 del plan pide persistencia local completa. Gran parte
+ya existía tras el rediseño sin servidor: `LocalProjectStore` (IndexedDB
+`spark-projects`), autoguardado con temporizador de 600 s, guardado y carga
+de `.sb3`, y aviso `beforeunload`.
+
+**Decisión.** Se completaron los puntos que faltaban:
+
+- **Autoguardado con debounce de 2 s** (`autoSaveIntervalSecs` de 600 a 2) y
+  guardado inmediato al ocultar la pestaña (`visibilitychange`). Con el
+  debounce corto, `storeProject` solo reescribe los assets con cambios
+  (`!asset.clean`); el `assetId` es el md5 del contenido, así que el mismo
+  id implica el mismo contenido ya almacenado.
+- **Instantáneas rotatorias**: `LocalProjectStore.saveSnapshot` guarda la
+  última copia del JSON del proyecto en un almacén `snapshots` (versión 2 de
+  la base de datos), conservando 3 por proyecto y descartando las más
+  viejas. Cada guardado local guarda una instantánea; no bloquea el
+  guardado. `remove` limpia las instantáneas del proyecto borrado.
+- **"Continuar donde lo dejaste"**: `spark.lastProjectId` en localStorage
+  recuerda el último proyecto guardado; al arrancar el editor con el
+  proyecto por defecto, si no hay hash, no hay cambios sin guardar y el
+  proyecto existe en el almacén, un modal ofrece Continuar (carga por id
+  vía `setProjectId`) o Proyecto nuevo. Se comprueba una sola vez por
+  montaje.
+- **`navigator.storage.persist()`**: se solicita tras el primer guardado
+  local. Si el navegador no la concede (o no existe), se muestra una vez
+  (clave `spark.persistReminderShown` en localStorage) el aviso discreto
+  `persistReminder` que recomienda exportar con frecuencia.
+- **Cuota agotada**: si el guardado falla por cuota de IndexedDB
+  (`QuotaExceededError`, `NS_ERROR_DOM_QUOTA_REACHED`, `err.code === 22`),
+  se muestra `storageQuotaError` (con botón de descarga) en lugar del
+  `savingError` genérico; reintentar no ayudaría.
+- **Archivo demasiado grande**: los `.sb3` de más de 500 MB se rechazan
+  antes de leerlos a memoria, con aviso `spark.projectLoader.fileTooLarge`.
+  Un fallo de lectura del `FileReader` ahora cancela la carga y avisa
+  (antes el editor se quedaba colgado).
+- **File System Access API**: en Chromium, "Guardar en tu ordenador" usa
+  `showSaveFilePicker` la primera vez y después sobrescribe el mismo
+  archivo si el permiso sigue vigente (`lib/file-save.js`); el resto de
+  navegadores y cualquier error usan la descarga clásica. Cancelar el
+  selector no descarga nada. El handle se recuerda solo durante la sesión.
+
+**Alternativas.**
+- Instantáneas solo en guardados manuales: descartado; el autoguardado es
+  el único guardado habitual y la copia de seguridad debe cubrirlo.
+- Pedir el permiso del handle recordado con `requestPermission`: se
+  descartó porque puede lanzarse sin activación de usuario válida dentro
+  de la promesa; se prefiere `queryPermission` y degradar a descarga.
+- Guardar el handle en IndexedDB para recordarlo entre sesiones: aplazado;
+  el manejador de permisos al reabrirlo complica el flujo por poco beneficio.
+
+---

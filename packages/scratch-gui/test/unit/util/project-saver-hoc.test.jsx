@@ -2,13 +2,15 @@ import 'web-audio-test-api';
 
 import React from 'react';
 import configureStore from 'redux-mock-store';
-import {render} from '@testing-library/react';
+import {render, waitFor} from '@testing-library/react';
 import {LoadingState} from '../../../src/reducers/project-state';
 import VM from '@scratch/scratch-vm';
 import {legacyConfig} from '../../../src/legacy-config';
 
 import projectSaverHOC from '../../../src/lib/project-saver-hoc.jsx';
 import '@testing-library/jest-dom';
+
+const PERSIST_REMINDER_KEY = 'spark.persistReminderShown';
 
 describe('projectSaverHOC', () => {
     const mockStore = configureStore();
@@ -559,6 +561,207 @@ describe('projectSaverHOC', () => {
         // Fast-forward until all timers have been executed
         jest.runAllTimers();
         expect(mockedAutoUpdate).not.toHaveBeenCalled();
+    });
+
+    test('when the tab is hidden with unsaved changes, it saves immediately', () => {
+        const Component = () => <div />;
+        const WrappedComponent = projectSaverHOC(Component);
+        const mockedAutoUpdate = jest.fn(() => Promise.resolve());
+        const {rerender} = render(
+            <WrappedComponent
+                canSave
+                isShowingSaveable
+                isShowingWithId
+                loadingState={LoadingState.SHOWING_WITH_ID}
+                store={store}
+                vm={vm}
+                onAutoUpdateProject={mockedAutoUpdate}
+            />
+        );
+        rerender(
+            <WrappedComponent
+                canSave
+                isShowingSaveable
+                isShowingWithId
+                loadingState={LoadingState.SHOWING_WITH_ID}
+                store={store}
+                vm={vm}
+                onAutoUpdateProject={mockedAutoUpdate}
+                projectChanged
+            />
+        );
+        // Nothing has been saved yet: the autosave timer is still pending
+        expect(mockedAutoUpdate).not.toHaveBeenCalled();
+
+        Object.defineProperty(document, 'visibilityState', {
+            configurable: true,
+            get: () => 'hidden'
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+
+        expect(mockedAutoUpdate).toHaveBeenCalled();
+    });
+
+    test('when the tab is hidden without unsaved changes, it does not save', () => {
+        const Component = () => <div />;
+        const WrappedComponent = projectSaverHOC(Component);
+        const mockedAutoUpdate = jest.fn(() => Promise.resolve());
+        render(
+            <WrappedComponent
+                canSave
+                isShowingSaveable
+                isShowingWithId
+                loadingState={LoadingState.SHOWING_WITH_ID}
+                store={store}
+                vm={vm}
+                onAutoUpdateProject={mockedAutoUpdate}
+            />
+        );
+        Object.defineProperty(document, 'visibilityState', {
+            configurable: true,
+            get: () => 'hidden'
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+
+        expect(mockedAutoUpdate).not.toHaveBeenCalled();
+    });
+
+    test('after the first local save, it requests persistent storage and shows the export reminder', async () => {
+        window.localStorage.clear();
+        const Component = () => <div />;
+        const WrappedComponent = projectSaverHOC(Component);
+        const {rerender} = render(
+            <WrappedComponent
+                canSave
+                isShowingWithId
+                isUpdating={false}
+                loadingState={LoadingState.SHOWING_WITH_ID}
+                reduxProjectId={'100'}
+                store={store}
+                vm={vm}
+            />
+        );
+        rerender(
+            <WrappedComponent
+                canSave
+                isShowingWithId
+                isUpdating
+                loadingState={LoadingState.MANUAL_UPDATING}
+                reduxProjectId={'100'}
+                store={store}
+                vm={vm}
+            />
+        );
+        await waitFor(() => expect(
+            store.getActions().map(action => action.alertId)
+        ).toContain('persistReminder'));
+        expect(window.localStorage.getItem(PERSIST_REMINDER_KEY)).toBe('1');
+    });
+
+    test('the export reminder is not repeated on a later save', async () => {
+        window.localStorage.setItem(PERSIST_REMINDER_KEY, '1');
+        const Component = () => <div />;
+        const WrappedComponent = projectSaverHOC(Component);
+        const {rerender} = render(
+            <WrappedComponent
+                canSave
+                isShowingWithId
+                isUpdating={false}
+                loadingState={LoadingState.SHOWING_WITH_ID}
+                reduxProjectId={'100'}
+                store={store}
+                vm={vm}
+            />
+        );
+        rerender(
+            <WrappedComponent
+                canSave
+                isShowingWithId
+                isUpdating
+                loadingState={LoadingState.MANUAL_UPDATING}
+                reduxProjectId={'100'}
+                store={store}
+                vm={vm}
+            />
+        );
+        await waitFor(() => expect(
+            store.getActions().map(action => action.alertId)
+        ).toContain('saveSuccess'));
+        expect(store.getActions().map(action => action.alertId))
+            .not.toContain('persistReminder');
+        window.localStorage.clear();
+    });
+
+    test('when saving fails because of storage quota, it shows the quota alert', async () => {
+        const Component = () => <div />;
+        const WrappedComponent = projectSaverHOC(Component);
+        WrappedComponent.WrappedComponent.prototype.storeProject = jest.fn(() =>
+            Promise.reject(Object.assign(new Error('quota exceeded'), {
+                name: 'QuotaExceededError'
+            }))
+        );
+        const {rerender} = render(
+            <WrappedComponent
+                canSave
+                isShowingWithId
+                isUpdating={false}
+                loadingState={LoadingState.SHOWING_WITH_ID}
+                reduxProjectId={'100'}
+                store={store}
+                vm={vm}
+            />
+        );
+        rerender(
+            <WrappedComponent
+                canSave
+                isShowingWithId
+                isUpdating
+                loadingState={LoadingState.MANUAL_UPDATING}
+                reduxProjectId={'100'}
+                store={store}
+                vm={vm}
+            />
+        );
+        await waitFor(() => expect(
+            store.getActions().map(action => action.alertId)
+        ).toContain('storageQuotaError'));
+        expect(store.getActions().map(action => action.alertId))
+            .not.toContain('savingError');
+    });
+
+    test('when saving fails for another reason, it shows the generic saving error', async () => {
+        const Component = () => <div />;
+        const WrappedComponent = projectSaverHOC(Component);
+        WrappedComponent.WrappedComponent.prototype.storeProject = jest.fn(() =>
+            Promise.reject(new Error('save failed'))
+        );
+        const {rerender} = render(
+            <WrappedComponent
+                canSave
+                isShowingWithId
+                isUpdating={false}
+                loadingState={LoadingState.SHOWING_WITH_ID}
+                reduxProjectId={'100'}
+                store={store}
+                vm={vm}
+            />
+        );
+        rerender(
+            <WrappedComponent
+                canSave
+                isShowingWithId
+                isUpdating
+                loadingState={LoadingState.MANUAL_UPDATING}
+                reduxProjectId={'100'}
+                store={store}
+                vm={vm}
+            />
+        );
+        await waitFor(() => expect(
+            store.getActions().map(action => action.alertId)
+        ).toContain('savingError'));
+        expect(store.getActions().map(action => action.alertId))
+            .not.toContain('storageQuotaError');
     });
 
     test('when starting to remix, onRemixing should be called with param true', () => {

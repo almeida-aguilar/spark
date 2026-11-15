@@ -1,8 +1,12 @@
 import ProjectStore from './project-store';
 
 const DATABASE_NAME = 'spark-projects';
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 const STORE_NAME = 'projects';
+const SNAPSHOTS_STORE = 'snapshots';
+// Instantáneas rotatorias: las más antiguas se descartan al superar este
+// número por proyecto.
+const MAX_SNAPSHOTS = 3;
 
 /**
  * A project store that keeps the projects in the browser, using IndexedDB.
@@ -15,6 +19,7 @@ class LocalProjectStore extends ProjectStore {
     constructor () {
         super();
         this._memory = {};
+        this._snapshotsMemory = [];
         this._database = null;
         this._databasePromise = null;
     }
@@ -44,6 +49,12 @@ class LocalProjectStore extends ProjectStore {
                 if (!database.objectStoreNames.contains(STORE_NAME)) {
                     database.createObjectStore(STORE_NAME, {keyPath: 'id'});
                 }
+                if (!database.objectStoreNames.contains(SNAPSHOTS_STORE)) {
+                    database.createObjectStore(SNAPSHOTS_STORE, {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    });
+                }
             };
             request.onsuccess = () => {
                 this._database = request.result;
@@ -56,18 +67,19 @@ class LocalProjectStore extends ProjectStore {
     }
 
     /**
-     * Run a function with a transaction of the projects store.
+     * Run a function with a transaction of the given object store.
+     * @param {string} storeName - the name of the object store.
      * @param {string} mode - the mode of the transaction ('readonly' or 'readwrite').
      * @param {function} action - the action to run with the object store.
      * @returns {Promise} resolved with the result of the action.
      * @private
      */
-    _withStore (mode, action) {
+    _withTransaction (storeName, mode, action) {
         return this._openDatabase().then(database => {
             if (!database) return null;
             return new Promise((resolve, reject) => {
-                const transaction = database.transaction(STORE_NAME, mode);
-                const store = transaction.objectStore(STORE_NAME);
+                const transaction = database.transaction(storeName, mode);
+                const store = transaction.objectStore(storeName);
                 let result;
                 try {
                     result = action(store);
@@ -82,6 +94,17 @@ class LocalProjectStore extends ProjectStore {
                 transaction.onabort = () => reject(transaction.error);
             });
         });
+    }
+
+    /**
+     * Run a function with a transaction of the projects store.
+     * @param {string} mode - the mode of the transaction ('readonly' or 'readwrite').
+     * @param {function} action - the action to run with the object store.
+     * @returns {Promise} resolved with the result of the action.
+     * @private
+     */
+    _withStore (mode, action) {
+        return this._withTransaction(STORE_NAME, mode, action);
     }
 
     /**
@@ -159,9 +182,97 @@ class LocalProjectStore extends ProjectStore {
      */
     remove (id) {
         delete this._memory[id];
+        this._snapshotsMemory = this._snapshotsMemory.filter(entry => entry.projectId !== id);
         return this._withStore('readwrite', store => store.delete(id))
+            .then(() => this._removeSnapshots(id))
             .catch(() => null)
             .then(() => null);
+    }
+
+    /**
+     * Store a snapshot of a project. Only the last few snapshots of each
+     * project are kept; older ones are discarded.
+     * @param {string} id - the identifier of the project.
+     * @param {object} projectData - the data of the project.
+     * @param {string} [title] - the title of the project.
+     * @returns {Promise} resolved when the snapshot is stored.
+     */
+    saveSnapshot (id, projectData, title = '') {
+        const entry = {
+            projectId: id,
+            projectData: projectData,
+            title: title,
+            saved: Date.now()
+        };
+        this._snapshotsMemory = this._snapshotsMemory.concat(entry);
+        this._trimSnapshotsMemory(id);
+        return this._withTransaction(SNAPSHOTS_STORE, 'readwrite', store => {
+            const existing = store.getAll();
+            existing.onsuccess = () => {
+                const mine = existing.result
+                    .filter(candidate => candidate.projectId === id)
+                    .sort((a, b) => a.saved - b.saved);
+                // Keep room for the snapshot that is about to be added.
+                const excess = mine.slice(0, Math.max(0, mine.length - (MAX_SNAPSHOTS - 1)));
+                excess.forEach(candidate => store.delete(candidate.id));
+                store.add(entry);
+            };
+        })
+            .catch(() => null);
+    }
+
+    /**
+     * List the snapshots of a project, the most recent first.
+     * @param {string} id - the identifier of the project.
+     * @returns {Promise.<Array>} the list of snapshots.
+     */
+    listSnapshots (id) {
+        return this._withTransaction(SNAPSHOTS_STORE, 'readonly', store => store.getAll())
+            .then(result => {
+                if (!result) return this._snapshotsMemory;
+                return result;
+            })
+            .catch(() => this._snapshotsMemory)
+            .then(snapshots => snapshots
+                .filter(entry => entry.projectId === id)
+                .sort((a, b) => b.saved - a.saved));
+    }
+
+    /**
+     * Discard the oldest snapshots of a project in the in-memory fallback,
+     * keeping room for one more.
+     * @param {string} id - the identifier of the project.
+     * @private
+     */
+    _trimSnapshotsMemory (id) {
+        const mine = this._snapshotsMemory
+            .filter(entry => entry.projectId === id)
+            .sort((a, b) => a.saved - b.saved);
+        const excess = mine.slice(0, Math.max(0, mine.length - MAX_SNAPSHOTS));
+        if (excess.length > 0) {
+            this._snapshotsMemory = this._snapshotsMemory
+                .filter(entry => !excess.includes(entry));
+        }
+    }
+
+    /**
+     * Delete the stored snapshots of a project.
+     * @param {string} id - the identifier of the project.
+     * @returns {Promise} resolved when the snapshots are removed.
+     * @private
+     */
+    _removeSnapshots (id) {
+        return this._withTransaction(SNAPSHOTS_STORE, 'readonly', store => store.getAll())
+            .then(snapshots => {
+                if (!snapshots) return;
+                const doomed = snapshots
+                    .filter(entry => entry.projectId === id)
+                    .map(entry => entry.id);
+                return this._withTransaction(SNAPSHOTS_STORE, 'readwrite', store => {
+                    doomed.forEach(key => store.delete(key));
+                });
+            })
+            .catch(() => null);
     }
 }
 

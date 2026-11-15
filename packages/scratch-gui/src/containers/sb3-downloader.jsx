@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {connect} from 'react-redux';
 import {projectTitleInitialState} from '../reducers/project-title';
-import downloadBlob from '../lib/download-blob';
+import saveFile from '../lib/file-save';
 /**
  * Project saver component passes a downloadProject function to its child.
  * It expects this child to be a function with the signature
@@ -30,7 +30,9 @@ class SB3Downloader extends React.Component {
             if (this.props.onSaveFinished) {
                 this.props.onSaveFinished();
             }
-            downloadBlob(this.props.projectFilename, content);
+            // SPARK: en Chromium se guarda sobre el mismo archivo (File
+            // System Access API); en el resto se descarga de forma clásica.
+            saveFile(this.props.projectFilename, content);
         });
     }
     render () {

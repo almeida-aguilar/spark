@@ -24,6 +24,7 @@ import Watermark from '../../containers/watermark.jsx';
 
 import ExtensionsButton from '../extension-button/extension-button.jsx';
 import WebGlModal from '../../containers/webgl-modal.jsx';
+import ContinueProjectModal from '../../containers/continue-project-modal.jsx';
 import Alerts from '../../containers/alerts.jsx';
 import DragLayer from '../../containers/drag-layer.jsx';
 import ConnectionModal from '../../containers/connection-modal.jsx';
@@ -263,6 +264,7 @@ const GUIComponent = props => {
                     {isRendererSupported ? null : (
                         <WebGlModal isRtl={isRtl} />
                     )}
+                    <ContinueProjectModal />
                     {/* SPARK: sin tutoriales ni tarjetas: los vídeos se cargaban de Wistia. */}
                     {alertsVisible ? (
                         <Alerts className={styles.alertsContainer} />

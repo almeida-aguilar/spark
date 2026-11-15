@@ -143,6 +143,22 @@ const alerts = [
         level: AlertLevels.WARN
     },
     {
+        alertId: 'storageQuotaError',
+        clearList: ['createSuccess', 'creating', 'createCopySuccess', 'creatingCopy',
+            'createRemixSuccess', 'creatingRemix', 'saveSuccess', 'saving'],
+        showDownload: true,
+        closeButton: false,
+        content: (
+            <FormattedMessage
+                defaultMessage={'The browser storage is full, so the project could not ' +
+                    'save. Export it to your computer to free up space.'}
+                description="Message shown when the browser storage quota is exhausted while saving a project"
+                id="spark.alerts.storageQuotaError"
+            />
+        ),
+        level: AlertLevels.WARN
+    },
+    {
         alertId: 'saveSuccess',
         alertType: AlertTypes.INLINE,
         clearList: ['saveSuccess', 'saving', 'savingError'],
@@ -217,6 +233,21 @@ const alerts = [
         closeButton: true,
         level: AlertLevels.SUCCESS,
         maxDisplaySecs: 15
+    },
+    {
+        alertId: 'persistReminder',
+        alertType: AlertTypes.STANDARD,
+        clearList: ['persistReminder'],
+        content: (
+            <FormattedMessage
+                defaultMessage={'Your project is saved in this browser, which may delete ' +
+                    'stored data. Export it to your computer regularly to keep a backup.'}
+                description="Message recommending frequent exports, because browser storage is not a durable backup"
+                id="spark.alerts.persistReminder"
+            />
+        ),
+        level: AlertLevels.INFO,
+        maxDisplaySecs: 10
     },
     {
         alertId: 'importingAsset',

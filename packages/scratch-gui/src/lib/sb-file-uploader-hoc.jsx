@@ -28,8 +28,18 @@ const messages = defineMessages({
         id: 'gui.projectLoader.loadError',
         defaultMessage: 'The project file that was selected failed to load.',
         description: 'An error that displays when a local project file fails to load.'
+    },
+    // SPARK: aviso para archivos de proyecto demasiado grandes
+    fileTooLarge: {
+        id: 'spark.projectLoader.fileTooLarge',
+        defaultMessage: 'The project file is too large to load. The limit is {limit} MB.',
+        description: 'An error that displays when a local project file is too large to load.'
     }
 });
+
+// SPARK: límite de tamaño para los archivos de proyecto; leer algo mayor a
+// memoria agotaría el navegador sin un mensaje claro.
+const MAX_SB3_UPLOAD_SIZE = 500 * 1024 * 1024;
 
 /**
  * Higher Order Component to provide behavior for loading local project files into editor.
@@ -50,6 +60,7 @@ const SBFileUploaderHOC = function (WrappedComponent) {
                 'handleStartSelectingFileUpload',
                 'handleChange',
                 'onload',
+                'onFileReadError',
                 'removeFileObjects'
             ]);
         }
@@ -74,6 +85,7 @@ const SBFileUploaderHOC = function (WrappedComponent) {
             // create fileReader
             this.fileReader = new FileReader();
             this.fileReader.onload = this.onload;
+            this.fileReader.onerror = this.onFileReadError;
             // create <input> element and add it to DOM
             this.inputElement = document.createElement('input');
             this.inputElement.accept = '.sb,.sb2,.sb3';
@@ -123,6 +135,17 @@ const SBFileUploaderHOC = function (WrappedComponent) {
         // that project data has finished "uploading" into the browser
         handleFinishedLoadingUpload () {
             if (this.fileToUpload && this.fileReader) {
+                // SPARK: rechaza archivos demasiado grandes antes de leerlos
+                // a memoria; cargarlos haría fallar el navegador sin un
+                // mensaje claro.
+                if (this.fileToUpload.size > MAX_SB3_UPLOAD_SIZE) {
+                    this.props.cancelFileUpload(this.props.loadingState);
+                    const limitMB = MAX_SB3_UPLOAD_SIZE / (1024 * 1024);
+                    /* eslint-disable-next-line no-alert */
+                    alert(this.props.intl.formatMessage(messages.fileTooLarge, {limit: limitMB}));
+                    this.removeFileObjects();
+                    return;
+                }
                 // begin to read data from the file. When finished,
                 // cues step 6 using the reader's onload callback
                 this.fileReader.readAsArrayBuffer(this.fileToUpload);
@@ -131,6 +154,14 @@ const SBFileUploaderHOC = function (WrappedComponent) {
                 // skip ahead to step 7
                 this.removeFileObjects();
             }
+        }
+        // SPARK: un fallo de lectura del archivo debe cancelar la carga;
+        // sin esto el editor se quedaría colgado en la pantalla de carga.
+        onFileReadError () {
+            log.warn('FileReader error while loading a project file');
+            this.props.cancelFileUpload(this.props.loadingState);
+            alert(this.props.intl.formatMessage(messages.loadError)); // eslint-disable-line no-alert
+            this.removeFileObjects();
         }
         // step 6: attached as a handler on our FileReader object; called when
         // file upload raw data is available in the reader

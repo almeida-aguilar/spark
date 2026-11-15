@@ -21,7 +21,7 @@ class ProjectStore {
      * @param {string} id - the identifier of the project.
      * @returns {Promise.<object|null>} the saved project, or null.
      */
-    load (id) { // eslint-disable-line no-unused-vars
+    load (id) {
         return Promise.reject(new Error('Not implemented'));
     }
 
@@ -31,7 +31,7 @@ class ProjectStore {
      * @param {object} projectData - the data of the project.
      * @returns {Promise} resolved when the project is saved.
      */
-    save (id, projectData) { // eslint-disable-line no-unused-vars
+    save (id, projectData) {
         return Promise.reject(new Error('Not implemented'));
     }
 
@@ -48,7 +48,29 @@ class ProjectStore {
      * @param {string} id - the identifier of the project.
      * @returns {Promise} resolved when the project is removed.
      */
-    remove (id) { // eslint-disable-line no-unused-vars
+    remove (id) {
+        return Promise.reject(new Error('Not implemented'));
+    }
+
+    /**
+     * Guarda una instantánea del proyecto, para poder recuperar el trabajo
+     * si la versión actual se corrompe. Cada proyecto conserva unas pocas
+     * instantáneas rotatorias.
+     * @param {string} id - the identifier of the project.
+     * @param {object} projectData - the data of the project.
+     * @param {string} [title] - the title of the project.
+     * @returns {Promise} resolved when the snapshot is stored.
+     */
+    saveSnapshot (id, projectData, title) {
+        return Promise.reject(new Error('Not implemented'));
+    }
+
+    /**
+     * Lista las instantáneas de un proyecto, la más reciente primero.
+     * @param {string} id - the identifier of the project.
+     * @returns {Promise.<Array>} the list of snapshots.
+     */
+    listSnapshots (id) {
         return Promise.reject(new Error('Not implemented'));
     }
 }

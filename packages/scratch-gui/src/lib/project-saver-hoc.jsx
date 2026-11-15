@@ -38,6 +38,22 @@ import {getProjectThumbnail, storeProjectThumbnail} from './store-project-thumbn
 
 const boundThumbnailSavers = new WeakMap();
 
+// SPARK: clave de localStorage para no repetir el aviso de exportación
+const PERSIST_REMINDER_KEY = 'spark.persistReminderShown';
+
+/**
+ * Detecta errores de cuota del almacenamiento del navegador; el nombre de
+ * la excepción varía entre navegadores.
+ * @param {Error} err - the error raised while storing the project.
+ * @returns {boolean} true when the error is about storage quota.
+ */
+const isQuotaError = err =>
+    err && (
+        err.name === 'QuotaExceededError' ||
+        err.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+        err.code === 22
+    );
+
 /*
  * Returns the storage's thumbnail saver bound to the storage, or undefined if it has none.
  *
@@ -66,6 +82,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
         constructor (props) {
             super(props);
             bindAll(this, [
+                'handleVisibilityChange',
                 'leavePageConfirm',
                 'tryToAutoSave'
             ]);
@@ -76,6 +93,9 @@ const ProjectSaverHOC = function (WrappedComponent) {
                 // but then it'd be hard to turn this listening off in our tests
                 window.onbeforeunload = e => this.leavePageConfirm(e);
             }
+            // SPARK: guardado del autoguardado pendiente cuando la pestaña se
+            // oculta; el navegador puede cerrarla sin disparar el temporizador.
+            document.addEventListener('visibilitychange', this.handleVisibilityChange);
             // Allow the GUI consumer to pass in a function to receive a trigger
             // for triggering thumbnail or whole project saves.
             // These functions are called with null on unmount to prevent stale references.
@@ -147,6 +167,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
             }
         }
         componentWillUnmount () {
+            document.removeEventListener('visibilitychange', this.handleVisibilityChange);
             this.clearAutoSaveTimeout();
             // Cant unset the beforeunload because it might no longer belong to this component
             // i.e. if another of this component has been mounted before this one gets unmounted
@@ -168,6 +189,14 @@ const ProjectSaverHOC = function (WrappedComponent) {
             if (this.props.autoSaveTimeoutId !== null) {
                 clearTimeout(this.props.autoSaveTimeoutId);
                 this.props.setAutoSaveTimeoutId(null);
+            }
+        }
+        handleVisibilityChange () {
+            if (document.visibilityState === 'hidden') {
+                // El temporizador del autoguardado puede seguir pendiente; se
+                // cancela y se guarda ahora, si hay cambios sin guardar.
+                this.clearAutoSaveTimeout();
+                this.tryToAutoSave();
             }
         }
         scheduleAutoSave () {
@@ -197,7 +226,12 @@ const ProjectSaverHOC = function (WrappedComponent) {
                 .catch(err => {
                     // Always show the savingError alert because it gives the
                     // user the chance to download or retry the save manually.
-                    this.props.onShowAlert('savingError');
+                    // SPARK: si la cuota del almacenamiento del navegador se
+                    // agotó, un aviso específico recomienda exportar para
+                    // liberar espacio; reintentar no ayudará.
+                    this.props.onShowAlert(
+                        isQuotaError(err) ? 'storageQuotaError' : 'savingError'
+                    );
                     this.props.onProjectError(err);
                 });
         }
@@ -273,11 +307,15 @@ const ProjectSaverHOC = function (WrappedComponent) {
                     (params && params.title) || this.props.reduxProjectTitle
                 ));
 
-            // SPARK: sin servidor de assets: se guardan todos los assets del
+            // SPARK: sin servidor de assets: se guardan los assets del
             // proyecto en el navegador (IndexedDB), no solo los modificados.
             // Al recargar el proyecto por su id, los assets tienen que estar
-            // disponibles sin conexión.
+            // disponibles sin conexión. Con el debounce corto de 2s solo se
+            // reescriben los assets con cambios; los `clean` ya están en el
+            // almacén con el mismo contenido (el assetId es el md5 de los
+            // datos, así que el mismo id implica el mismo contenido).
             return Promise.all(this.props.vm.assets
+                .filter(asset => !asset.clean)
                 .map(
                     asset => storeAsset(
                         asset.data,
@@ -292,6 +330,24 @@ const ProjectSaverHOC = function (WrappedComponent) {
                 .then(() => saveProject(projectId, savedVMState, requestParams))
                 .then(response => {
                     this.props.onSetProjectUnchanged();
+                    this.requestPersistentStorage();
+                    // SPARK: instantánea rotatoria del proyecto guardado en
+                    // local, para poder recuperar el trabajo si la versión
+                    // actual llegara a corromperse. No bloquea el guardado.
+                    if (!this.props.onUpdateProjectData) {
+                        getProjectStore().saveSnapshot(
+                            response.id.toString(),
+                            savedVMState
+                        );
+                        try {
+                            window.localStorage.setItem(
+                                'spark.lastProjectId',
+                                response.id.toString()
+                            );
+                        } catch (e) {
+                            // modo privado: el aviso de "continuar" no estará disponible
+                        }
+                    }
                     const id = response.id.toString();
                     if (this.props.onUpdateProjectThumbnail && id && (
                         !this.props.manuallySaveThumbnails ||
@@ -311,6 +367,41 @@ const ProjectSaverHOC = function (WrappedComponent) {
                     log.error(err);
                     throw err; // pass the error up the chain
                 });
+        }
+
+        /**
+         * SPARK: solicita almacenamiento persistente para IndexedDB y, si el
+         * navegador no lo concede o no soporta la API, muestra un aviso
+         * discreto que recomienda exportar el proyecto con frecuencia,
+         * porque los datos locales pueden ser borrados. Solo se pide y
+         * avisa una vez por navegador.
+         */
+        requestPersistentStorage () {
+            if (this.props.onUpdateProjectData) return; // el guardado es externo, no IndexedDB
+            let alreadyShown = false;
+            try {
+                alreadyShown = window.localStorage.getItem(PERSIST_REMINDER_KEY) !== null;
+            } catch (e) {
+                // modo privado: no se puede recordar; el aviso se repetiría en cada sesión
+            }
+            if (alreadyShown) return;
+            if (navigator.storage && navigator.storage.persist) {
+                navigator.storage.persist()
+                    .then(granted => {
+                        if (!granted) this.showPersistReminder();
+                    })
+                    .catch(() => this.showPersistReminder());
+            } else {
+                this.showPersistReminder();
+            }
+        }
+        showPersistReminder () {
+            try {
+                window.localStorage.setItem(PERSIST_REMINDER_KEY, '1');
+            } catch (e) {
+                // sin localStorage persistente: el aviso volverá a mostrarse
+            }
+            this.props.onShowPersistReminderAlert();
         }
 
         /**
@@ -416,6 +507,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
         onShowRemixSuccessAlert: PropTypes.func,
         onShowSaveSuccessAlert: PropTypes.func,
         onShowSavingAlert: PropTypes.func,
+        onShowPersistReminderAlert: PropTypes.func,
         onUpdateProjectData: PropTypes.func,
         onUpdateProjectThumbnail: PropTypes.func,
         onUpdatedProject: PropTypes.func,
@@ -430,7 +522,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
         vm: PropTypes.instanceOf(VM).isRequired
     };
     ProjectSaverComponent.defaultProps = {
-        autoSaveIntervalSecs: 600, // 10 minutes = 600 seconds
+        autoSaveIntervalSecs: 2, // SPARK: debounce corto, el guardado es local (IndexedDB)
         // SPARK: todo es local, así que el guardado y la creación de proyectos
         // nuevos están siempre disponibles (la GUI aplica el mismo default,
         // pero el saver está por encima y no ve esos defaults).
@@ -484,6 +576,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
         onShowCreatingRemixAlert: () => showAlertWithTimeout(dispatch, 'creatingRemix'),
         onShowSaveSuccessAlert: () => showAlertWithTimeout(dispatch, 'saveSuccess'),
         onShowSavingAlert: () => showAlertWithTimeout(dispatch, 'saving'),
+        onShowPersistReminderAlert: () => showAlertWithTimeout(dispatch, 'persistReminder'),
         onUpdatedProject: loadingState => dispatch(doneUpdatingProject(loadingState)),
         setAutoSaveTimeoutId: id => dispatch(setAutoSaveTimeoutId(id))
     });
