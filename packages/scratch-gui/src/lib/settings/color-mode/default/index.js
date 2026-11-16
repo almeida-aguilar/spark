@@ -9,7 +9,7 @@ const blockColors = {
     },
     looks: {
         colourPrimary: '#9966FF',
-        colourSecondary: '#855CD6',
+        colourSecondary: '#4C97FF',
         colourTertiary: '#774DCB',
         colourQuaternary: '#774DCB'
     },

@@ -47,7 +47,7 @@ const showUpdatePrompt = registration => {
             padding: '6px 12px',
             cursor: 'pointer',
             fontSize: '14px',
-            background: primary ? '#855CD6' : '#555',
+            background: primary ? '#4C97FF' : '#555',
             color: '#fff'
         });
         return btn;
