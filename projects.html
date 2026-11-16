@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Proyectos Spark</title>
+  <meta name="theme-color" content="#4C97FF">
+  <link rel="shortcut icon" href="static/favicon.ico">
+  <style>
+    :root {
+      --spark-blue: #4C97FF;
+      --spark-orange: #FFAB19;
+      --bg: #f7f5ff;
+      --card: #ffffff;
+      --text: #2b2b2b;
+      --muted: #666;
+      --border: #e6e0f5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background: var(--spark-blue);
+      color: #fff;
+      padding: 20px 24px;
+    }
+    header h1 { margin: 0 0 6px; font-size: 1.8rem; }
+    header p { margin: 0; opacity: 0.95; }
+    main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 40px; }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+    .filter label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .filter select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d7d0ea;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+    .status { margin: 10px 0 16px; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(75,59,120,0.12); }
+    .preview {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #efe9ff, #fff6e8);
+      display: block;
+    }
+    .preview.placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--spark-blue);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .content { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .title { margin: 0; font-size: 1.1rem; }
+    .desc { margin: 0; color: var(--muted); font-size: 0.95rem; line-height: 1.35; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .badge {
+      font-size: 0.78rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #f0ecfb;
+      color: #4b3b78;
+      border: 1px solid #e3dcf7;
+    }
+    .badge.peripheral { background: #fff4e5; color: #7a4b00; border-color: #ffe2b8; }
+    .actions { margin-top: auto; padding-top: 6px; }
+    .actions .link-btn {
+      color: var(--spark-blue);
+      text-decoration: none;
+      font-weight: 600;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .actions .link-btn:hover { text-decoration: underline; }
+    .empty {
+      background: var(--card);
+      border: 1px dashed #d7d0ea;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .detail {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      color: var(--spark-blue);
+      background: #f0ecfb;
+      border: 1px solid #e3dcf7;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .back-btn:hover { background: #e8e1fa; }
+    .md-body { line-height: 1.6; }
+    .md-body h1, .md-body h2, .md-body h3 { color: #3a2d5c; margin-top: 1.2em; }
+    .md-body h1 { margin-top: 0.2em; }
+    .md-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+    .md-body a { color: var(--spark-blue); }
+    .md-body pre {
+      background: #f6f3ff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      overflow: auto;
+    }
+    .md-body code { background: #f6f3ff; padding: 2px 5px; border-radius: 4px; }
+    .md-body pre code { background: none; padding: 0; }
+    .video-embed {
+      position: relative;
+      width: 100%;
+      max-width: 720px;
+      aspect-ratio: 16 / 9;
+      margin: 12px 0;
+    }
+    .video-embed iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      border-radius: 10px;
+    }
+    [hidden] { display: none !important; }
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.5rem; }
+      main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Proyectos Spark</h1>
+    <p>Elige un proyecto, constrúyelo y prográmalo paso a paso en Spark.</p>
+  </header>
+  <main>
+    <div id="list-view">
+      <section class="filters" aria-label="Filtros de proyectos">
+        <div class="filter">
+          <label for="filter-construction">Dificultad de construcción</label>
+          <select id="filter-construction">
+            <option value="">Todas</option>
+            <option value="fácil">Fácil</option>
+            <option value="media">Media</option>
+            <option value="difícil">Difícil</option>
+          </select>
+        </div>
+        <div class="filter">
+          <label for="filter-code">Dificultad de código</label>
+          <select id="filter-code">
+            <option value="">Todas</option>
+            <option value="básico">Básico</option>
+            <option value="intermedio">Intermedio</option>
+            <option value="avanzado">Avanzado</option>
+          </select>
+        </div>
+        <div class="filter">
+          <label for="filter-peripheral">Periférico</label>
+          <select id="filter-peripheral">
+            <option value="">Todos</option>
+            <option value="motor">Motor</option>
+            <option value="sensor de distancia">Sensor de distancia</option>
+            <option value="sensor de inclinación">Sensor de inclinación</option>
+            <option value="botón">Botón</option>
+            <option value="luz">Luz</option>
+            <option value="doble motor">Doble motor</option>
+          </select>
+        </div>
+      </section>
+
+      <div id="status" class="status">Cargando proyectos...</div>
+      <section id="grid" class="grid" aria-live="polite"></section>
+      <div id="empty" class="empty" hidden>No hay proyectos que coincidan con los filtros seleccionados.</div>
+    </div>
+
+    <div id="detail-view" class="detail" hidden>
+      <button id="back-btn" class="back-btn" type="button">← Volver a proyectos</button>
+      <div id="detail-body" class="md-body"></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    (function () {
+      var DATA_URL = 'projects/projects-data.json';
+      var state = {projects: [], filtered: [], current: null};
+
+      function byId(id) { return document.getElementById(id); }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function getFilters() {
+        return {
+          construction: byId('filter-construction').value,
+          code: byId('filter-code').value,
+          peripheral: byId('filter-peripheral').value
+        };
+      }
+
+      function applyFilters() {
+        var f = getFilters();
+        state.filtered = state.projects.filter(function (p) {
+          var peripherals = Array.isArray(p.peripherals) ? p.peripherals : [];
+          if (f.construction && p.difficulty_construction !== f.construction) return false;
+          if (f.code && p.difficulty_code !== f.code) return false;
+          if (f.peripheral && peripherals.indexOf(f.peripheral) === -1) return false;
+          return true;
+        });
+        render();
+      }
+
+      function embedYouTube(html) {
+        return html.replace(
+          /<a href="(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)[^"]*)">[^<]*<\/a>/g,
+          function (_, url, id) {
+            return '<div class="video-embed"><iframe src="https://www.youtube.com/embed/' + id + '" title="YouTube video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe></div>';
+          }
+        );
+      }
+
+      function stripFrontMatter(md) {
+        return md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+      }
+
+      function renderCard(p) {
+        var peripherals = Array.isArray(p.peripherals) ? p.peripherals : [];
+        var imgHtml;
+        if (p.image) {
+          var imgSrc = 'projects/' + p.image.replace(/^\/+/, '');
+          imgHtml = '<img class="preview" src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(p.title) + '" loading="lazy" onerror="this.outerHTML=\'<div class=\\\'preview placeholder\\\'>Vista previa</div>\'">';
+        } else {
+          imgHtml = '<div class="preview placeholder">Vista previa</div>';
+        }
+
+        var metaHtml = '' +
+          '<span class="badge">Construcción: ' + escapeHtml(p.difficulty_construction || '-') + '</span>' +
+          '<span class="badge">Código: ' + escapeHtml(p.difficulty_code || '-') + '</span>' +
+          peripherals.map(function (per) {
+            return '<span class="badge peripheral">' + escapeHtml(per) + '</span>';
+          }).join('');
+
+        return '<article class="card" data-slug="' + escapeHtml(p.slug) + '" tabindex="0" role="button" aria-label="Abrir proyecto ' + escapeHtml(p.title) + '">' +
+          imgHtml +
+          '<div class="content">' +
+            '<h2 class="title">' + escapeHtml(p.title) + '</h2>' +
+            '<p class="desc">' + escapeHtml(p.description) + '</p>' +
+            '<div class="meta">' + metaHtml + '</div>' +
+            '<div class="actions"><button class="link-btn" type="button" data-slug="' + escapeHtml(p.slug) + '">Ver instrucciones</button></div>' +
+          '</div>' +
+        '</article>';
+      }
+
+      function render() {
+        var grid = byId('grid');
+        var empty = byId('empty');
+        var status = byId('status');
+
+        status.textContent = state.filtered.length + ' proyecto(s) mostrado(s) de ' + state.projects.length + '.';
+
+        if (!state.filtered.length) {
+          grid.innerHTML = '';
+          empty.hidden = false;
+          return;
+        }
+
+        empty.hidden = true;
+        grid.innerHTML = state.filtered.map(renderCard).join('');
+      }
+
+      function showList() {
+        state.current = null;
+        byId('detail-view').hidden = true;
+        byId('list-view').hidden = false;
+        if (history && history.replaceState) {
+          history.replaceState(null, '', 'projects.html');
+        }
+        window.scrollTo(0, 0);
+      }
+
+      function openProject(slug) {
+        var project = state.projects.find(function (p) { return p.slug === slug; });
+        if (!project || !project.source) return;
+
+        state.current = slug;
+        byId('list-view').hidden = true;
+        byId('detail-view').hidden = false;
+        byId('detail-body').innerHTML = '<p class="status">Cargando instrucciones...</p>';
+        if (history && history.replaceState) {
+          history.replaceState(null, '', 'projects.html?project=' + encodeURIComponent(slug));
+        }
+        window.scrollTo(0, 0);
+
+        fetch(project.source, {cache: 'no-store'})
+          .then(function (res) {
+            if (!res.ok) throw new Error('No se pudo cargar ' + project.source);
+            return res.text();
+          })
+          .then(function (md) {
+            var body = stripFrontMatter(md);
+            var html = (window.marked && window.marked.parse) ? window.marked.parse(body, {breaks: true}) : '<pre>' + escapeHtml(body) + '</pre>';
+            html = embedYouTube(html);
+            byId('detail-body').innerHTML = html;
+          })
+          .catch(function (err) {
+            byId('detail-body').innerHTML = '<p>No se pudieron cargar las instrucciones de este proyecto.</p>';
+            console.error(err);
+          });
+      }
+
+      function onGridClick(e) {
+        var target = e.target;
+        var slugEl = target.closest('[data-slug]');
+        if (!slugEl) return;
+        openProject(slugEl.getAttribute('data-slug'));
+      }
+
+      function init() {
+        ['filter-construction', 'filter-code', 'filter-peripheral'].forEach(function (id) {
+          byId(id).addEventListener('change', applyFilters);
+        });
+        byId('grid').addEventListener('click', onGridClick);
+        byId('grid').addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            var slugEl = e.target.closest('[data-slug]');
+            if (slugEl) { e.preventDefault(); openProject(slugEl.getAttribute('data-slug')); }
+          }
+        });
+        byId('back-btn').addEventListener('click', showList);
+
+        fetch(DATA_URL, {cache: 'no-store'})
+          .then(function (res) {
+            if (!res.ok) throw new Error('No se pudo cargar ' + DATA_URL);
+            return res.json();
+          })
+          .then(function (data) {
+            state.projects = Array.isArray(data) ? data : [];
+            state.filtered = state.projects.slice();
+            render();
+
+            var params = new URLSearchParams(window.location.search);
+            var slug = params.get('project');
+            if (slug) openProject(slug);
+          })
+          .catch(function (err) {
+            byId('status').textContent = 'No se pudieron cargar los proyectos.';
+            console.error(err);
+          });
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
