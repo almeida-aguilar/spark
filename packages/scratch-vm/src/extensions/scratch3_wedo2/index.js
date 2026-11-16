@@ -1264,16 +1264,16 @@ class Scratch3WeDo2Blocks {
                 LIGHT_COLOR_INDEX: {
                     acceptReporters: true,
                     items: [
-                        {text: '1 - pink', value: '1'},
-                        {text: '2 - purple', value: '2'},
-                        {text: '3 - blue', value: '3'},
-                        {text: '4 - cyan', value: '4'},
-                        {text: '5 - teal', value: '5'},
-                        {text: '6 - green', value: '6'},
-                        {text: '7 - yellow', value: '7'},
-                        {text: '8 - orange', value: '8'},
-                        {text: '9 - red', value: '9'},
-                        {text: '10 - white', value: '10'}
+                        {text: 'pink', value: '1'},
+                        {text: 'purple', value: '2'},
+                        {text: 'blue', value: '3'},
+                        {text: 'cyan', value: '4'},
+                        {text: 'teal', value: '5'},
+                        {text: 'green', value: '6'},
+                        {text: 'yellow', value: '7'},
+                        {text: 'orange', value: '8'},
+                        {text: 'red', value: '9'},
+                        {text: 'white', value: '10'}
                     ]
                 },
                 MOTOR_ID: {
