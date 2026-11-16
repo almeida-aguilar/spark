@@ -320,18 +320,6 @@ class MenuBar extends React.Component {
                             isRtl={this.props.isRtl}
                             depth={1}
                         />)}
-                        <button
-                            aria-label={this.props.intl.formatMessage(ariaMessages.projects)}
-                            className={classNames(styles.menuBarItem, styles.hoverable)}
-                            onClick={this.handleOpenProjects}
-                            title={this.props.intl.formatMessage(ariaMessages.projects)}
-                        >
-                            <FormattedMessage
-                                defaultMessage="Projects"
-                                description="Menu bar button to open the projects showcase"
-                                id="spark.menuBar.projects"
-                            />
-                        </button>
                         {(this.props.canManageFiles) && (<FileMenu
                             onStartSelectingFileUpload={this.props.onStartSelectingFileUpload}
                             onClickNew={this.handleClickNew}
@@ -408,6 +396,19 @@ class MenuBar extends React.Component {
                     </div>
                 </div>
 
+                {/* SPARK: acceso al catálogo de proyectos */}
+                <button
+                    aria-label={this.props.intl.formatMessage(ariaMessages.projects)}
+                    className={classNames(styles.menuBarItem, styles.hoverable)}
+                    onClick={this.handleOpenProjects}
+                    title={this.props.intl.formatMessage(ariaMessages.projects)}
+                >
+                    <FormattedMessage
+                        defaultMessage="Projects"
+                        description="Menu bar button to open the projects showcase"
+                        id="spark.menuBar.projects"
+                    />
+                </button>
                 {/* SPARK: diálogo propio "Acerca de Spark" (créditos, descargo y licencia) */}
                 <button
                     className={classNames(styles.menuBarItem, styles.hoverable)}
