@@ -646,3 +646,70 @@ de `.sb3`, y aviso `beforeunload`.
   el manejador de permisos al reabrirlo complica el flujo por poco beneficio.
 
 ---
+
+---
+## D027 — 2026-11-15 — Fase 7: idiomas con carga diferida y cadenas propias de Spark
+
+**Contexto.** La Fase 7 exige todos los idiomas de `scratch-l10n`, carga diferida
+por idioma para no inflar el bundle inicial, cadenas propias de Spark traducidas
+al menos a español e inglés con retroceso al inglés, detección inicial por
+`navigator.language` recordando la elección en `localStorage` y funcionamiento de
+los idiomas RTL.
+
+**Decisión.**
+- **Carga diferida:** se elimina la importación del bundle monolítico
+  `scratch-l10n/locales/editor-msgs`. Por cada locale se cargan bajo demanda y se
+  combinan los JSON de `scratch-l10n/editor/{interface,extensions,paint-editor,blocks}`
+  mediante `import()` dinámico (`lib/spark-l10n/locale-loader.js`), generando
+  chunks separados que no entran en el arranque. Los mensajes cargados se
+  cachean en memoria y en `state.locales.messagesByLocale`.
+- **Idioma inicial:** `detect-locale.js` prioriza la preferencia persistida
+  (`localStorage` clave `spark:locale`, `getInitialLocale`/`setPersistedLocale`);
+  si no hay preferencia, detecta por `navigator.language` y por parámetros de URL
+  como antes. `EditorState` fija `lang`/`dir` y dispara la carga asíncrona del
+  idioma inicial; hasta que llegan los mensajes se usan los `defaultMessage`
+  (inglés) de react-intl.
+- **Cadenas Spark:** las traducciones propias (`spark.*`) viven en
+  `lib/spark-l10n/spark-messages.js` (es/en) y se fusionan al cargar cada locale;
+  los idiomas sin traducción propia reciben el retroceso a inglés.
+- **Cambio de idioma:** los selectores (`language-selector`, `language-menu`)
+  cargan el locale si no está en caché, lo activan, lo persisten y actualizan
+  `lang`/`dir`. La lista de idiomas soportados sigue procediendo de
+  `scratch-l10n` (`supported-locales`).
+
+**Alternativas.**
+- Importar el bundle `editor-msgs` completo: descartado por inflar el inicial.
+- Cargar un único recurso por locale: se cargan los cuatro recursos del editor
+  para mantener paridad con `editor-msgs` (interfaz, extensiones, pintura y
+  bloques).
+
+
+---
+## D028 — 2026-11-15 — Fase 8 (base): PWA instalable, service worker y actualización
+
+**Contexto.** La Fase 8 requiere manifiesto, iconos, service worker con Workbox,
+precache (app shell, chunks, biblioteca multimedia e idiomas), aviso de
+actualización sin recarga automática y soporte de publicación en subruta.
+
+**Decisión.**
+- **Manifiesto e iconos:** `static/manifest.webmanifest` (nombre `Spark`,
+  `display: standalone`, `start_url`/`scope` relativos `./`, colores e idioma) e
+  iconos PNG 192/512 en `static/icons/` (propósito `any` y `maskable`). Enlace al
+  manifiesto, `theme-color` e icono Apple en `src/playground/index.ejs`.
+- **Service worker (Workbox InjectManifest):** `src/playground/service-worker.js`
+  precachea el manifiesto inyectado (`precacheAndRoute`) y aplica cache-first para
+  recursos estáticos/versionados; no hace `skipWaiting` automático, espera el
+  mensaje `SKIP_WAITING`. `webpack.config.js` y `webpack.pages.config.js` añaden
+  `InjectManifest` (incluyendo `globPatterns` sobre `static/` y `libraries/` del
+  build para cubrir biblioteca multimedia/bloques/idiomas copiados).
+- **Registro y actualización:** `src/playground/register-sw.js` registra `sw.js`
+  con alcance `./` en producción y muestra un aviso (“Hay una versión nueva,
+  ¿Actualizar?”) cuando hay un worker en espera; solo recarga tras confirmación
+  del usuario (al `controllerchange`).
+- **Base path:** rutas relativas (`./`, `sw.js`, `static/...`) para funcionar en
+  subruta (GitHub Pages, `PUBLIC_PATH` en `webpack.pages.config.js`).
+
+**Pendiente/nota.** Añadida `workbox-webpack-plugin` a `devDependencies` de
+`scratch-gui`; la compilación y la verificación (offline, Lighthouse, Web
+Bluetooth sin conexión) requieren dependencias instaladas y build.
+

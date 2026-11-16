@@ -3,12 +3,14 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {connect} from 'react-redux';
-import locales from 'scratch-l10n';
+import locales, {isRtl} from 'scratch-l10n';
 
 import check from './check.svg';
 import {MenuItem, Submenu} from '../menu/menu.jsx';
 import languageIcon from '../language-selector/language-icon.svg';
-import {selectLocale} from '../../reducers/locales.js';
+import {selectLocale, addLocaleMessages} from '../../reducers/locales.js';
+import {loadLocaleMessages} from '../../lib/spark-l10n/locale-loader';
+import {setPersistedLocale} from '../../lib/detect-locale';
 import useMenuNavigation from '../../hooks/use-menu-navigation';
 
 import stylesSettingsMenu from './settings-menu.css';
@@ -25,7 +27,9 @@ const languageMenu = defineMessage({
 const LanguageMenu = ({
     currentLocale,
     isRtl,
+    messagesByLocale,
     onChangeLanguage,
+    onLocaleLoaded,
     depth
 }) => {
     const intl = useIntl();
@@ -98,7 +102,23 @@ const LanguageMenu = ({
                                 key={locale}
                                 className={stylesLanguageMenu.languageMenuItem}
                                 // eslint-disable-next-line react/jsx-no-bind
-                                onClick={() => onChangeLanguage(locale)}
+                                onClick={() => {
+                                    const apply = () => {
+                                        onChangeLanguage(locale);
+                                        setPersistedLocale(locale);
+                                        document.documentElement.lang = locale;
+                                        document.documentElement.dir = isRtl(locale) ? 'rtl' : 'ltr';
+                                    };
+                                    if (messagesByLocale && messagesByLocale[locale]) {
+                                        apply();
+                                        return;
+                                    }
+                                    // SPARK: carga diferida del idioma solicitado (fase 7)
+                                    loadLocaleMessages(locale).then(messages => {
+                                        onLocaleLoaded(locale, messages);
+                                        apply();
+                                    }).catch(() => {});
+                                }}
                                 isDataMenuItem
                                 onParentKeyDown={handleKeyDownOpenMenu}
                                 isSelected={isSelected}
@@ -121,9 +141,11 @@ const LanguageMenu = ({
 
 LanguageMenu.propTypes = {
     currentLocale: PropTypes.string,
+    depth: PropTypes.number,
     isRtl: PropTypes.bool,
+    messagesByLocale: PropTypes.object, // eslint-disable-line react/forbid-prop-types
     onChangeLanguage: PropTypes.func,
-    depth: PropTypes.number
+    onLocaleLoaded: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -135,6 +157,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onChangeLanguage: locale => {
         dispatch(selectLocale(locale));
+    },
+    onLocaleLoaded: (locale, messages) => {
+        dispatch(addLocaleMessages(locale, messages));
     }
 });
 

@@ -1,9 +1,30 @@
 /**
  * @file
- * Utility function to detect locale from the browser setting or paramenter on the URL.
+ * Utility function to detect locale from the browser setting or parameter on the URL.
  */
 
 import queryString from 'query-string';
+
+// SPARK: idioma recordado por el usuario (fase 7)
+const LOCALE_STORAGE_KEY = 'spark:locale';
+
+const getPersistedLocale = supportedLocales => {
+    try {
+        const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+        if (stored && supportedLocales.includes(stored)) return stored;
+    } catch (e) {
+        // localStorage no disponible (p. ej. navegación privada con restricciones)
+    }
+    return null;
+};
+
+const setPersistedLocale = locale => {
+    try {
+        window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    } catch (e) {
+        // ignorar si no se puede persistir
+    }
+};
 
 /**
  * look for language setting in the browser. Check against supported locales.
@@ -40,6 +61,22 @@ const detectLocale = supportedLocales => {
     return locale;
 };
 
+/**
+ * Devuelve el idioma inicial: preferencia guardada, si no la detección del
+ * navegador/URL.
+ * @param {Array.string} supportedLocales
+ * @returns {string}
+ */
+const getInitialLocale = supportedLocales => {
+    const persisted = getPersistedLocale(supportedLocales);
+    if (persisted) return persisted;
+    return detectLocale(supportedLocales);
+};
+
 export {
-    detectLocale
+    detectLocale,
+    getInitialLocale,
+    getPersistedLocale,
+    setPersistedLocale,
+    LOCALE_STORAGE_KEY
 };

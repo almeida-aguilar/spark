@@ -1,9 +1,10 @@
 import {createStore, combineReducers, compose, Store} from 'redux';
-import localesReducer, {initLocale, localesInitialState} from '../reducers/locales';
-import locales from 'scratch-l10n';
-import {detectLocale} from './detect-locale';
+import localesReducer, {initLocale, localesInitialState, addLocaleMessages} from '../reducers/locales';
+import locales, {isRtl} from 'scratch-l10n';
+import {getInitialLocale} from './detect-locale';
 import {GUIConfig} from '../gui-config';
 import log from './log.js';
+import {loadLocaleMessages} from './spark-l10n/locale-loader';
 
 interface WindowWithDevtools {
     __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: typeof compose;
@@ -44,18 +45,25 @@ export class EditorState {
         let initializedLocales = localesInitialState;
 
         let locale = 'en';
+        const supportedLocaleCodes = Object.keys(locales);
         if (params.locale) {
-            if (Object.keys(locales).includes(params.locale)) {
+            if (supportedLocaleCodes.includes(params.locale)) {
                 locale = params.locale;
             } else {
                 log.warn(`Unsupported locale ${params.locale}, falling back to en`);
             }
         } else {
-            locale = detectLocale(Object.keys(locales));
+            locale = getInitialLocale(supportedLocaleCodes);
         }
 
         if (locale !== 'en') {
             initializedLocales = initLocale(initializedLocales, locale);
+        }
+
+        // SPARK: aplica lang/dir inicial (fase 7, RTL)
+        if (typeof document !== 'undefined') {
+            document.documentElement.lang = locale;
+            document.documentElement.dir = isRtl(locale) ? 'rtl' : 'ltr';
         }
 
         if (params.localesOnly) {
@@ -110,6 +118,13 @@ export class EditorState {
         }
         const reducer = combineReducers(reducers);
         this.store = createStore(reducer, initialState, enhancer);
+
+        // SPARK: carga diferida del idioma inicial (fase 7)
+        loadLocaleMessages(locale).then(messages => {
+            this.store.dispatch(addLocaleMessages(locale, messages));
+        }).catch(err => {
+            log.error(`Could not load locale ${locale}`, err);
+        });
     }
 
     dispatch (action) {
