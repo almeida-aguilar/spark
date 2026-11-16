@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const {InjectManifest} = require('workbox-webpack-plugin');
 
 const ScratchWebpackConfigBuilder = require('scratch-webpack-configuration');
 
@@ -123,6 +124,16 @@ const baseConfig = new ScratchWebpackConfigBuilder({
         chunks: ['gui'],
         template: 'src/playground/index.ejs',
         title: 'Spark'
+    }))
+    .addPlugin(new InjectManifest({
+        swSrc: path.join(__dirname, 'src/playground/service-worker.js'),
+        swDest: 'sw.js',
+        exclude: [/\.map$/, /^manifest.*\.js$/],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        // SPARK: precachea también assets estáticos copiados (biblioteca, bloques, etc.)
+        globDirectory: path.join(__dirname, 'build'),
+        globPatterns: ['static/**/*.{svg,png,jpg,gif,ico,webmanifest,mp3,wav,ogg,json}', 'libraries/*.json'],
+        globIgnores: ['**/*.map']
     }));
 
 module.exports = baseConfig.get();

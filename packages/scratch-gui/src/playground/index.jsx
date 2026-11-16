@@ -12,6 +12,7 @@ import BrowserModalComponent from '../components/browser-modal/browser-modal.jsx
 import supportedBrowser from '../lib/supported-browser';
 
 import styles from './index.css';
+import registerServiceWorker from './register-sw';
 
 const appTarget = document.createElement('div');
 appTarget.className = styles.app;
@@ -30,3 +31,6 @@ if (supportedBrowser()) {
     // eslint-disable-next-line react/jsx-no-bind
     root.render(<WrappedBrowserModalComponent onBack={handleBack} />);
 }
+
+// SPARK: service worker/PWA (fase 8)
+registerServiceWorker();

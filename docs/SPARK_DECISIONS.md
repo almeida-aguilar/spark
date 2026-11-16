@@ -684,6 +684,7 @@ los idiomas RTL.
   bloques).
 
 
+
 ---
 ## D028 — 2026-11-15 — Fase 8 (base): PWA instalable, service worker y actualización
 
