@@ -77,6 +77,11 @@ const ariaMessages = defineMessages({
         defaultMessage: 'Home',
         description: 'accessibility text for the home button'
     },
+    projects: {
+        id: 'spark.menuBar.projects',
+        defaultMessage: 'Projects',
+        description: 'accessibility text for the projects showcase button'
+    },
     myStuff: {
         id: 'gui.menuBar.myStuff',
         defaultMessage: 'My Stuff',
@@ -153,6 +158,7 @@ class MenuBar extends React.Component {
             'handleRestoreOption',
             'handleClickAbout', // SPARK:
             'handleCloseAbout', // SPARK:
+            'handleOpenProjects', // SPARK:
             'getSaveToComputerHandler',
             'restoreOptionMessage'
         ]);
@@ -207,6 +213,10 @@ class MenuBar extends React.Component {
     // SPARK: cierra el diálogo "Acerca de Spark"
     handleCloseAbout () {
         this.setState({aboutOpen: false});
+    }
+    // SPARK: abre el catálogo de proyectos en una nueva pestaña
+    handleOpenProjects () {
+        window.open('projects.html', '_blank', 'noopener,noreferrer');
     }
     handleSetMode (mode) {
         return () => {
@@ -310,6 +320,18 @@ class MenuBar extends React.Component {
                             isRtl={this.props.isRtl}
                             depth={1}
                         />)}
+                        <button
+                            aria-label={this.props.intl.formatMessage(ariaMessages.projects)}
+                            className={classNames(styles.menuBarItem, styles.hoverable)}
+                            onClick={this.handleOpenProjects}
+                            title={this.props.intl.formatMessage(ariaMessages.projects)}
+                        >
+                            <FormattedMessage
+                                defaultMessage="Projects"
+                                description="Menu bar button to open the projects showcase"
+                                id="spark.menuBar.projects"
+                            />
+                        </button>
                         {(this.props.canManageFiles) && (<FileMenu
                             onStartSelectingFileUpload={this.props.onStartSelectingFileUpload}
                             onClickNew={this.handleClickNew}

@@ -226,6 +226,14 @@ const buildConfig = baseConfig.clone()
                 from: 'extensions/**',
                 to: 'static',
                 context: 'src/examples'
+            },
+            {
+                from: 'src/playground/projects.html',
+                to: 'projects.html'
+            },
+            {
+                from: path.resolve(__dirname, '../../projects'),
+                to: 'projects'
             }
         ]
     }));

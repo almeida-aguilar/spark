@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Proyectos Spark</title>
+  <meta name="theme-color" content="#855CD6">
+  <link rel="shortcut icon" href="static/favicon.ico">
+  <style>
+    :root {
+      --spark-purple: #855CD6;
+      --spark-orange: #FFAB19;
+      --bg: #f7f5ff;
+      --card: #ffffff;
+      --text: #2b2b2b;
+      --muted: #666;
+      --border: #e6e0f5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background: var(--spark-purple);
+      color: #fff;
+      padding: 20px 24px;
+    }
+    header h1 { margin: 0 0 6px; font-size: 1.8rem; }
+    header p { margin: 0; opacity: 0.95; }
+    main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 40px; }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+    .filter label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .filter select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d7d0ea;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+    .status { margin: 10px 0 16px; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+    .preview {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #efe9ff, #fff6e8);
+      display: block;
+    }
+    .preview.placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--spark-purple);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .content { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .title { margin: 0; font-size: 1.1rem; }
+    .desc { margin: 0; color: var(--muted); font-size: 0.95rem; line-height: 1.35; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .badge {
+      font-size: 0.78rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #f0ecfb;
+      color: #4b3b78;
+      border: 1px solid #e3dcf7;
+    }
+    .badge.peripheral { background: #fff4e5; color: #7a4b00; border-color: #ffe2b8; }
+    .actions { margin-top: auto; padding-top: 6px; }
+    .actions a {
+      color: var(--spark-purple);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .actions a:hover { text-decoration: underline; }
+    .empty {
+      background: var(--card);
+      border: 1px dashed #d7d0ea;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.5rem; }
+      main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Proyectos Spark</h1>
+    <p>Elige un proyecto, constrúyelo y prográmalo paso a paso en Spark.</p>
+  </header>
+  <main>
+    <section class="filters" aria-label="Filtros de proyectos">
+      <div class="filter">
+        <label for="filter-construction">Dificultad de construcción</label>
+        <select id="filter-construction">
+          <option value="">Todas</option>
+          <option value="fácil">Fácil</option>
+          <option value="media">Media</option>
+          <option value="difícil">Difícil</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label for="filter-code">Dificultad de código</label>
+        <select id="filter-code">
+          <option value="">Todas</option>
+          <option value="básico">Básico</option>
+          <option value="intermedio">Intermedio</option>
+          <option value="avanzado">Avanzado</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label for="filter-peripheral">Periférico</label>
+        <select id="filter-peripheral">
+          <option value="">Todos</option>
+          <option value="motor">Motor</option>
+          <option value="sensor de distancia">Sensor de distancia</option>
+          <option value="sensor de inclinación">Sensor de inclinación</option>
+          <option value="botón">Botón</option>
+          <option value="luz">Luz</option>
+          <option value="doble motor">Doble motor</option>
+        </select>
+      </div>
+    </section>
+
+    <div id="status" class="status">Cargando proyectos...</div>
+    <section id="grid" class="grid" aria-live="polite"></section>
+    <div id="empty" class="empty" hidden>No hay proyectos que coincidan con los filtros seleccionados.</div>
+  </main>
+
+  <script>
+    (function () {
+      var DATA_URL = 'projects/projects-data.json';
+      var state = {projects: [], filtered: []};
+
+      function byId(id) { return document.getElementById(id); }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function getFilters() {
+        return {
+          construction: byId('filter-construction').value,
+          code: byId('filter-code').value,
+          peripheral: byId('filter-peripheral').value
+        };
+      }
+
+      function applyFilters() {
+        var f = getFilters();
+        state.filtered = state.projects.filter(function (p) {
+          var peripherals = Array.isArray(p.peripherals) ? p.peripherals : [];
+          if (f.construction && p.difficulty_construction !== f.construction) return false;
+          if (f.code && p.difficulty_code !== f.code) return false;
+          if (f.peripheral && peripherals.indexOf(f.peripheral) === -1) return false;
+          return true;
+        });
+        render();
+      }
+
+      function renderCard(p) {
+        var peripherals = Array.isArray(p.peripherals) ? p.peripherals : [];
+        var imgHtml;
+        if (p.image) {
+          var imgSrc = 'projects/' + p.image.replace(/^\/+/, '');
+          imgHtml = '<img class="preview" src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(p.title) + '" loading="lazy" onerror="this.outerHTML=\'<div class=\\\'preview placeholder\\\'>Vista previa</div>\'">';
+        } else {
+          imgHtml = '<div class="preview placeholder">Vista previa</div>';
+        }
+
+        var metaHtml = '' +
+          '<span class="badge">Construcción: ' + escapeHtml(p.difficulty_construction || '-') + '</span>' +
+          '<span class="badge">Código: ' + escapeHtml(p.difficulty_code || '-') + '</span>' +
+          peripherals.map(function (per) {
+            return '<span class="badge peripheral">' + escapeHtml(per) + '</span>';
+          }).join('');
+
+        var sourceLink = p.source ? '<a href="' + escapeHtml(p.source) + '" target="_blank" rel="noopener noreferrer">Ver instrucciones</a>' : '';
+
+        return '<article class="card">' +
+          imgHtml +
+          '<div class="content">' +
+            '<h2 class="title">' + escapeHtml(p.title) + '</h2>' +
+            '<p class="desc">' + escapeHtml(p.description) + '</p>' +
+            '<div class="meta">' + metaHtml + '</div>' +
+            '<div class="actions">' + sourceLink + '</div>' +
+          '</div>' +
+        '</article>';
+      }
+
+      function render() {
+        var grid = byId('grid');
+        var empty = byId('empty');
+        var status = byId('status');
+
+        status.textContent = state.filtered.length + ' proyecto(s) mostrado(s) de ' + state.projects.length + '.';
+
+        if (!state.filtered.length) {
+          grid.innerHTML = '';
+          empty.hidden = false;
+          return;
+        }
+
+        empty.hidden = true;
+        grid.innerHTML = state.filtered.map(renderCard).join('');
+      }
+
+      function init() {
+        ['filter-construction', 'filter-code', 'filter-peripheral'].forEach(function (id) {
+          byId(id).addEventListener('change', applyFilters);
+        });
+
+        fetch(DATA_URL, {cache: 'no-store'})
+          .then(function (res) {
+            if (!res.ok) throw new Error('No se pudo cargar ' + DATA_URL);
+            return res.json();
+          })
+          .then(function (data) {
+            state.projects = Array.isArray(data) ? data : [];
+            state.filtered = state.projects.slice();
+            render();
+          })
+          .catch(function (err) {
+            byId('status').textContent = 'No se pudieron cargar los proyectos.';
+            console.error(err);
+          });
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
