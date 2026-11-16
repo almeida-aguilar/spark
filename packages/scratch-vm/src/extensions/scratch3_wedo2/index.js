@@ -410,6 +410,13 @@ class WeDo2 {
         };
 
         /**
+         * Whether the hub button is currently pressed.
+         * @type {boolean}
+         * @private
+         */
+        this._hubButtonPressed = false;
+
+        /**
          * The Bluetooth connection socket for reading/writing peripheral data.
          * @type {BLE}
          * @private
@@ -457,6 +464,13 @@ class WeDo2 {
      */
     get distance () {
         return this._sensors.distance;
+    }
+
+    /**
+     * @returns {boolean} - whether the hub button is currently pressed.
+     */
+    get hubButtonPressed () {
+        return this._hubButtonPressed;
     }
 
     /**
@@ -642,6 +656,7 @@ class WeDo2 {
             tiltY: 0,
             distance: 0
         };
+        this._hubButtonPressed = false;
 
         if (this._batteryLevelIntervalId) {
             window.clearInterval(this._batteryLevelIntervalId);
@@ -781,9 +796,25 @@ class WeDo2 {
             }
             break;
         }
+        case 0: {
+            // Hub button or hub-level message (connect ID 0)
+            // Button state is typically reported as attached/detached or value on port 0
+            if (data[1] === 1 || data[1] === 2) {
+                // Attached/value update for hub button
+                this._hubButtonPressed = data[2] === 1 || data[2] === 2;
+            } else if (data[1] === 0) {
+                this._hubButtonPressed = false;
+            }
+            break;
+        }
         default: {
             // read incoming sensor value
             const connectID = data[1];
+            if (connectID === 0) {
+                // Hub button value update
+                this._hubButtonPressed = data[2] === 1;
+                break;
+            }
             const type = this._ports[connectID - 1];
             if (type === WeDo2Device.DISTANCE) {
                 this._sensors.distance = data[2];
@@ -1045,12 +1076,71 @@ class Scratch3WeDo2Blocks {
                         description: 'set the LED color'
                     }),
                     blockType: BlockType.COMMAND,
+                    hideFromPalette: true,
                     arguments: {
                         HUE: {
                             type: ArgumentType.NUMBER,
                             defaultValue: 50
                         }
                     }
+                },
+                {
+                    opcode: 'turnLightOff',
+                    text: formatMessage({
+                        id: 'wedo2.turnLightOff',
+                        default: 'turn light off',
+                        description: 'turn off the LED light'
+                    }),
+                    blockType: BlockType.COMMAND
+                },
+                {
+                    opcode: 'setLightColourByIndex',
+                    text: formatMessage({
+                        id: 'wedo2.setLightColourByIndex',
+                        default: 'set light color to [INDEX]',
+                        description: 'set the LED color by index (1-10)'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        INDEX: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        }
+                    }
+                },
+                {
+                    opcode: 'setLightColourPicker',
+                    text: formatMessage({
+                        id: 'wedo2.setLightColourPicker',
+                        default: 'set light colour to [COLOR]',
+                        description: 'set the LED color using color picker'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        COLOR: {
+                            type: ArgumentType.COLOR,
+                            defaultValue: '#9966FF'
+                        }
+                    }
+                },
+                {
+                    opcode: 'whenHubButtonPressed',
+                    text: formatMessage({
+                        id: 'wedo2.whenHubButtonPressed',
+                        default: 'when hub button pressed',
+                        description: 'trigger when the hub button is pressed'
+                    }),
+                    blockType: BlockType.HAT,
+                    isEdgeActivated: true
+                },
+                {
+                    opcode: 'hubButtonPressed',
+                    text: formatMessage({
+                        id: 'wedo2.hubButtonPressed',
+                        default: 'hub button pressed?',
+                        description: 'whether the hub button is pressed'
+                    }),
+                    blockType: BlockType.BOOLEAN
                 },
                 {
                     opcode: 'playNoteFor',
@@ -1445,7 +1535,7 @@ class Scratch3WeDo2Blocks {
     }
 
     /**
-     * Set the LED's hue.
+     * Set the LED's hue (legacy block, kept for backward compatibility).
      * @param {object} args - the block's arguments.
      * @property {number} HUE - the hue to set, in the range [0,100].
      * @returns {Promise} - a Promise that resolves after some delay.
@@ -1467,6 +1557,104 @@ class Scratch3WeDo2Blocks {
                 resolve();
             }, BLESendInterval);
         });
+    }
+
+    /**
+     * Turn the LED off.
+     * @returns {Promise} - a Promise that resolves after some delay.
+     */
+    turnLightOff () {
+        this._peripheral.setLED(0);
+
+        return new Promise(resolve => {
+            window.setTimeout(() => {
+                resolve();
+            }, BLESendInterval);
+        });
+    }
+
+    /**
+     * Set the LED colour by index (0-10).
+     * Official WeDo 2.0 colours: 0=off, 1=pink, 2=purple, 3=blue, 4=cyan,
+     * 5=teal, 6=green, 7=yellow, 8=orange, 9=red, 10=white.
+     * @param {object} args - the block's arguments.
+     * @property {number} INDEX - the colour index (0-10).
+     * @returns {Promise} - a Promise that resolves after some delay.
+     */
+    setLightColourByIndex (args) {
+        let index = Math.round(Cast.toNumber(args.INDEX));
+        index = MathUtil.clamp(index, 0, 10);
+
+        const colours = [
+            [0, 0, 0],       // 0: off
+            [255, 20, 147],  // 1: pink
+            [128, 0, 128],   // 2: purple
+            [0, 0, 255],     // 3: blue
+            [0, 255, 255],   // 4: cyan
+            [0, 128, 128],   // 5: teal
+            [0, 255, 0],     // 6: green
+            [255, 255, 0],   // 7: yellow
+            [255, 165, 0],   // 8: orange
+            [255, 0, 0],     // 9: red
+            [255, 255, 255]  // 10: white
+        ];
+
+        const rgb = colours[index];
+        const rgbDecimal = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+        this._peripheral.setLED(rgbDecimal);
+
+        return new Promise(resolve => {
+            window.setTimeout(() => {
+                resolve();
+            }, BLESendInterval);
+        });
+    }
+
+    /**
+     * Set the LED colour using a color picker (RGB).
+     * @param {object} args - the block's arguments.
+     * @property {string|number} COLOR - the colour (hex string or decimal RGB).
+     * @returns {Promise} - a Promise that resolves after some delay.
+     */
+    setLightColourPicker (args) {
+        let rgbDecimal;
+        const colorValue = args.COLOR;
+
+        if (typeof colorValue === 'string' && colorValue.charAt(0) === '#') {
+            rgbDecimal = parseInt(colorValue.substring(1), 16);
+        } else {
+            rgbDecimal = Cast.toNumber(colorValue);
+        }
+
+        if (isNaN(rgbDecimal)) {
+            rgbDecimal = 0;
+        }
+
+        this._peripheral.setLED(rgbDecimal);
+
+        return new Promise(resolve => {
+            window.setTimeout(() => {
+                resolve();
+            }, BLESendInterval);
+        });
+    }
+
+    /**
+     * Check if the hub button is currently pressed.
+     * @returns {boolean} - true if the hub button is pressed.
+     */
+    hubButtonPressed () {
+        if (!this._peripheral) return false;
+        return this._peripheral.hubButtonPressed;
+    }
+
+    /**
+     * Hat block: trigger when the hub button is pressed.
+     * @returns {boolean} - true if the hub button is pressed (edge activated).
+     */
+    whenHubButtonPressed () {
+        if (!this._peripheral) return false;
+        return this._peripheral.hubButtonPressed;
     }
 
     /**
