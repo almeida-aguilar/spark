@@ -216,16 +216,6 @@ const buildConfig = baseConfig.clone()
         template: 'src/playground/index.ejs',
         title: 'Spark: Player Example' // SPARK:
     }))
-    .addPlugin(new InjectManifest({
-        swSrc: path.join(__dirname, 'src/playground/service-worker.js'),
-        swDest: 'sw.js',
-        exclude: [/\.map$/, /^manifest.*\.js$/],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-        // SPARK: precachea también assets estáticos copiados (biblioteca, bloques, etc.)
-        globDirectory: path.join(__dirname, 'build'),
-        globPatterns: ['static/**/*.{svg,png,jpg,gif,ico,webmanifest,mp3,wav,ogg,json}', 'libraries/*.json'],
-        globIgnores: ['**/*.map']
-    }))
     .addPlugin(new CopyWebpackPlugin({
         patterns: [
             {
@@ -239,6 +229,16 @@ const buildConfig = baseConfig.clone()
             }
         ]
     }));
+
+// SPARK: service worker solo en builds de producción (evita conflictos en dev/watch)
+if (process.env.NODE_ENV === 'production') {
+    buildConfig.addPlugin(new InjectManifest({
+        swSrc: path.join(__dirname, 'src/playground/service-worker.js'),
+        swDest: 'sw.js',
+        exclude: [/\.map$/, /^manifest.*\.js$/],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024
+    }));
+}
 
 // Skip building `dist/` unless explicitly requested
 // It roughly doubles build time and isn't needed for `scratch-gui` development

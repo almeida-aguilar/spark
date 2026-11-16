@@ -129,11 +129,7 @@ const baseConfig = new ScratchWebpackConfigBuilder({
         swSrc: path.join(__dirname, 'src/playground/service-worker.js'),
         swDest: 'sw.js',
         exclude: [/\.map$/, /^manifest.*\.js$/],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-        // SPARK: precachea también assets estáticos copiados (biblioteca, bloques, etc.)
-        globDirectory: path.join(__dirname, 'build'),
-        globPatterns: ['static/**/*.{svg,png,jpg,gif,ico,webmanifest,mp3,wav,ogg,json}', 'libraries/*.json'],
-        globIgnores: ['**/*.map']
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024
     }));
 
 module.exports = baseConfig.get();
