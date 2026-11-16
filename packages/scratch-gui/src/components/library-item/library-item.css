@@ -111,7 +111,7 @@
 }
 
 .featured-item {
-    flex-basis: 300px;
+    flex: 1 1 280px;
     max-width: 300px;
     height: auto;
     padding: 0;
@@ -129,7 +129,8 @@
     font-weight: bold;
     padding: 10px;
     /* height: 140px; */
-    width: 300px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 [dir="ltr"] .featured-extension-text {
