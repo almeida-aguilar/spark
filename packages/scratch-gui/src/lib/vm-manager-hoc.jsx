@@ -54,6 +54,10 @@ const vmManagerHOC = function (WrappedComponent) {
         loadProject () {
             return this.props.vm.loadProject(this.props.projectData)
                 .then(() => {
+                    // SPARK: asegurar que la extensión WeDo 2.0 esté disponible por defecto.
+                    if (!this.props.vm.extensionManager.isExtensionLoaded('wedo2')) {
+                        this.props.vm.extensionManager.loadExtensionURL('wedo2');
+                    }
                     this.props.onLoadedProject(this.props.loadingState, this.props.canSave);
                     // Wrap in a setTimeout because skin loading in
                     // the renderer can be async.
