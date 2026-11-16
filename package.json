@@ -64,6 +64,7 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-intl-redux": "^2.4.1",
     "redux": "^4.2.1"
   }
 }
