@@ -1,6 +1,11 @@
 // SPARK: traducciones propias de Spark (fase 7). Al menos es/en; el resto
 // recurre al inglés vía defaultMessage de react-intl.
 const en = {
+    'wedo2.turnLightOff': 'turn light off',
+    'wedo2.setLightColourByIndex': 'set light color to [COLOR_INDEX]',
+    'wedo2.setLightColourPicker': 'set light colour to [COLOR]',
+    'wedo2.whenHubButtonPressed': 'when hub button pressed',
+    'wedo2.hubButtonPressed': 'hub button pressed?',
     'spark.about.basedOn': 'Spark is based on the Scratch 3 editor, a project of the Scratch Foundation. Scratch is licensed under the GNU Affero General Public License v3.0.',
     'spark.about.contentLabel': 'About Spark',
     'spark.about.disclaimer': 'Spark is an independent project. It is not affiliated with, nor endorsed by, the Scratch Foundation or the LEGO Group. LEGO and WeDo are trademarks of their respective owners.',
@@ -35,6 +40,11 @@ const en = {
 };
 
 const es = {
+    'wedo2.turnLightOff': 'apagar luz',
+    'wedo2.setLightColourByIndex': 'fijar color de la luz a [COLOR_INDEX]',
+    'wedo2.setLightColourPicker': 'fijar color de la luz a [COLOR]',
+    'wedo2.whenHubButtonPressed': 'al presionar el botón del hub',
+    'wedo2.hubButtonPressed': '¿botón del hub presionado?',
     'spark.about.basedOn': 'Spark se basa en el editor Scratch 3, un proyecto de la Scratch Foundation. Scratch se distribuye bajo la Licencia Pública General Affero de GNU v3.0.',
     'spark.about.contentLabel': 'Acerca de Spark',
     'spark.about.disclaimer': 'Spark es un proyecto independiente. No está afiliado ni respaldado por la Scratch Foundation ni por el Grupo LEGO. LEGO y WeDo son marcas comerciales de sus respectivos titulares.',
