@@ -57,6 +57,8 @@ import debugIcon from '../debug-modal/icons/icon--debug.svg';
 // SPARK: sustituidos los logos de Scratch por los de Spark (time-travel sin logo propio)
 import scratchLogo from './spark-logo.svg'; // SPARK:
 import scratchLogoAndroid from './spark-logo-android.svg'; // SPARK:
+import projectsIcon from './icon--projects.svg'; // SPARK:
+import aboutIcon from './icon--about.svg'; // SPARK:
 
 import sharedMessages from '../../lib/shared-messages';
 
@@ -81,6 +83,11 @@ const ariaMessages = defineMessages({
         id: 'spark.menuBar.projects',
         defaultMessage: 'Projects',
         description: 'Menu bar button to open the projects showcase'
+    },
+    about: {
+        id: 'spark.menuBar.about',
+        defaultMessage: 'About Spark',
+        description: 'Menu item that opens the About Spark dialog'
     },
     myStuff: {
         id: 'gui.menuBar.myStuff',
@@ -311,15 +318,28 @@ class MenuBar extends React.Component {
                                 src={getScratchLogo(this.props.platform)}
                             />
                         </button>
-                        {(this.props.canChangeColorMode || this.props.canChangeLanguage || this.props.canChangeTheme) &&
-                        (<SettingsMenu
-                            canChangeLanguage={this.props.canChangeLanguage}
-                            canChangeColorMode={this.props.canChangeColorMode}
-                            canChangeTheme={this.props.canChangeTheme}
-                            hasActiveMembership={this.props.hasActiveMembership}
-                            isRtl={this.props.isRtl}
-                            depth={1}
-                        />)}
+                        {/* SPARK: acceso al catálogo de proyectos */}
+                        <button
+                            aria-label={this.props.intl.formatMessage(ariaMessages.projects)}
+                            className={classNames(styles.menuBarItem, styles.hoverable)}
+                            onClick={this.handleOpenProjects}
+                            title={this.props.intl.formatMessage(ariaMessages.projects)}
+                        >
+                            <img
+                                alt=""
+                                aria-hidden="true"
+                                className={styles.menuBarIcon}
+                                draggable={false}
+                                src={projectsIcon}
+                            />
+                            <span className={styles.collapsibleLabel}>
+                                <FormattedMessage
+                                    defaultMessage="Projects"
+                                    description="Menu bar button to open the projects showcase"
+                                    id="spark.menuBar.projects"
+                                />
+                            </span>
+                        </button>
                         {(this.props.canManageFiles) && (<FileMenu
                             onStartSelectingFileUpload={this.props.onStartSelectingFileUpload}
                             onClickNew={this.handleClickNew}
@@ -339,6 +359,15 @@ class MenuBar extends React.Component {
                             restoreOptionMessage={this.restoreOptionMessage}
                             depth={1}
                         />
+                        {(this.props.canChangeColorMode || this.props.canChangeLanguage || this.props.canChangeTheme) &&
+                        (<SettingsMenu
+                            canChangeLanguage={this.props.canChangeLanguage}
+                            canChangeColorMode={this.props.canChangeColorMode}
+                            canChangeTheme={this.props.canChangeTheme}
+                            hasActiveMembership={this.props.hasActiveMembership}
+                            isRtl={this.props.isRtl}
+                            depth={1}
+                        />)}
                         {this.props.isTotallyNormal && (<ModeMenu
                             onSetMode={this.handleSetMode}
                             modeNow={this.props.modeNow}
@@ -369,57 +398,52 @@ class MenuBar extends React.Component {
                         />
                     ) : null)}
                     {/* SPARK: sin Compartir, Remix ni Comunidad: no hay servidor ni cuentas. */}
-                    <Divider className={classNames(styles.divider)} />
-                    <div className={styles.fileGroup}>
-                        <button
-                            aria-label={this.props.intl.formatMessage(ariaMessages.debug)}
-                            className={classNames(styles.menuBarItem, styles.noOffset, styles.hoverable)}
-                            onClick={this.props.onOpenDebugModal}
-                        >
-                            <img
-                                className={styles.helpIcon}
-                                src={debugIcon}
-                            />
-                            <span className={styles.debugLabel}>
-                                <FormattedMessage {...ariaMessages.debug} />
-                            </span>
-                        </button>
-                    </div>
                 </div>
 
-                {/* SPARK: sin menú de usuario, "Mis cosas" ni registro: Spark no tiene cuentas. */}
                 <div className={styles.accountInfoGroup}>
-                    <div className={styles.menuBarItem}>
-                        {this.props.canSave && (
-                            <SaveStatus className={classNames(styles.hoverable, styles.menuBarItem)} />
-                        )}
-                    </div>
+                    {this.props.canSave && (
+                        <SaveStatus className={classNames(styles.menuBarItem, styles.hoverable)} />
+                    )}
+                    <button
+                        aria-label={this.props.intl.formatMessage(ariaMessages.debug)}
+                        className={classNames(styles.menuBarItem, styles.hoverable)}
+                        onClick={this.props.onOpenDebugModal}
+                    >
+                        <img
+                            alt=""
+                            aria-hidden="true"
+                            className={styles.menuBarIcon}
+                            draggable={false}
+                            src={debugIcon}
+                        />
+                        <span className={styles.debugLabel}>
+                            <FormattedMessage {...ariaMessages.debug} />
+                        </span>
+                    </button>
+                    {/* SPARK: diálogo propio "Acerca de Spark" (créditos, descargo y licencia) */}
+                    <button
+                        aria-label={this.props.intl.formatMessage(ariaMessages.about)}
+                        className={classNames(styles.menuBarItem, styles.hoverable, styles.aboutButton)}
+                        onClick={this.handleClickAbout}
+                        title={this.props.intl.formatMessage(ariaMessages.about)}
+                    >
+                        <img
+                            alt=""
+                            aria-hidden="true"
+                            className={styles.menuBarIcon}
+                            draggable={false}
+                            src={aboutIcon}
+                        />
+                        <span className={styles.collapsibleLabel}>
+                            <FormattedMessage
+                                defaultMessage="About Spark"
+                                description="Menu item that opens the About Spark dialog"
+                                id="spark.menuBar.about"
+                            />
+                        </span>
+                    </button>
                 </div>
 
-                {/* SPARK: acceso al catálogo de proyectos */}
-                <button
-                    aria-label={this.props.intl.formatMessage(ariaMessages.projects)}
-                    className={classNames(styles.menuBarItem, styles.hoverable)}
-                    onClick={this.handleOpenProjects}
-                    title={this.props.intl.formatMessage(ariaMessages.projects)}
-                >
-                    <FormattedMessage
-                        defaultMessage="Projects"
-                        description="Menu bar button to open the projects showcase"
-                        id="spark.menuBar.projects"
-                    />
-                </button>
-                {/* SPARK: diálogo propio "Acerca de Spark" (créditos, descargo y licencia) */}
-                <button
-                    className={classNames(styles.menuBarItem, styles.hoverable)}
-                    onClick={this.handleClickAbout}
-                >
-                    <FormattedMessage
-                        defaultMessage="About Spark" // SPARK:
-                        description="Menu item that opens the About Spark dialog"
-                        id="spark.menuBar.about" // SPARK: id propio
-                    />
-                </button>
                 <SparkAbout
                     intl={this.props.intl}
                     isOpen={this.state.aboutOpen}
