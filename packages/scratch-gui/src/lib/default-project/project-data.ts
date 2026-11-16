@@ -101,6 +101,7 @@ const projectData = (translateFunction?: TranslatorFunction): object => {
                 rotationStyle: 'all around'
             }
         ],
+        extensions: ['wedo2'],
         meta: {
             semver: '3.0.0',
             vm: '0.1.0',
