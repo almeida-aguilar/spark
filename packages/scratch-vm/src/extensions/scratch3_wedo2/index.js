@@ -38,6 +38,7 @@ const BLEService = {
  * @enum
  */
 const BLECharacteristic = {
+    BUTTON: '00001526-1212-efde-1523-785feabcd123',
     ATTACHED_IO: '00001527-1212-efde-1523-785feabcd123',
     LOW_VOLTAGE_ALERT: '00001528-1212-efde-1523-785feabcd123',
     INPUT_VALUES: '00001560-1212-efde-1523-785feabcd123',
@@ -442,6 +443,7 @@ class WeDo2 {
         this.reset = this.reset.bind(this);
         this._onConnect = this._onConnect.bind(this);
         this._onMessage = this._onMessage.bind(this);
+        this._onButtonMessage = this._onButtonMessage.bind(this);
         this._checkBatteryLevel = this._checkBatteryLevel.bind(this);
     }
 
@@ -765,7 +767,23 @@ class WeDo2 {
             BLECharacteristic.ATTACHED_IO,
             this._onMessage
         );
+        // Subscribe to hub button notifications
+        this._ble.startNotifications(
+            BLEService.DEVICE_SERVICE,
+            BLECharacteristic.BUTTON,
+            this._onButtonMessage
+        );
         this._batteryLevelIntervalId = window.setInterval(this._checkBatteryLevel, BLEBatteryCheckInterval);
+    }
+
+    /**
+     * Process button press data from the hub button characteristic.
+     * @param {string} base64 - the incoming BLE data.
+     * @private
+     */
+    _onButtonMessage (base64) {
+        const data = Base64Util.base64ToUint8Array(base64);
+        this._hubButtonPressed = data.length > 0 && data[0] !== 0;
     }
 
     /**
@@ -1097,14 +1115,15 @@ class Scratch3WeDo2Blocks {
                     opcode: 'setLightColourByIndex',
                     text: formatMessage({
                         id: 'wedo2.setLightColourByIndex',
-                        default: 'set light color to [INDEX]',
+                        default: 'set light color to [COLOR_INDEX]',
                         description: 'set the LED color by index (1-10)'
                     }),
                     blockType: BlockType.COMMAND,
                     arguments: {
-                        INDEX: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 1
+                        COLOR_INDEX: {
+                            type: ArgumentType.STRING,
+                            menu: 'LIGHT_COLOR_INDEX',
+                            defaultValue: '1'
                         }
                     }
                 },
@@ -1242,6 +1261,21 @@ class Scratch3WeDo2Blocks {
                 }
             ],
             menus: {
+                LIGHT_COLOR_INDEX: {
+                    acceptReporters: true,
+                    items: [
+                        {text: '1 - pink', value: '1'},
+                        {text: '2 - purple', value: '2'},
+                        {text: '3 - blue', value: '3'},
+                        {text: '4 - cyan', value: '4'},
+                        {text: '5 - teal', value: '5'},
+                        {text: '6 - green', value: '6'},
+                        {text: '7 - yellow', value: '7'},
+                        {text: '8 - orange', value: '8'},
+                        {text: '9 - red', value: '9'},
+                        {text: '10 - white', value: '10'}
+                    ]
+                },
                 MOTOR_ID: {
                     acceptReporters: true,
                     items: [
@@ -1574,15 +1608,15 @@ class Scratch3WeDo2Blocks {
     }
 
     /**
-     * Set the LED colour by index (0-10).
-     * Official WeDo 2.0 colours: 0=off, 1=pink, 2=purple, 3=blue, 4=cyan,
+     * Set the LED colour by index (1-10).
+     * Official WeDo 2.0 colours: 1=pink, 2=purple, 3=blue, 4=cyan,
      * 5=teal, 6=green, 7=yellow, 8=orange, 9=red, 10=white.
      * @param {object} args - the block's arguments.
-     * @property {number} INDEX - the colour index (0-10).
+     * @property {number|string} COLOR_INDEX - the colour index (1-10).
      * @returns {Promise} - a Promise that resolves after some delay.
      */
     setLightColourByIndex (args) {
-        let index = Math.round(Cast.toNumber(args.INDEX));
+        let index = Math.round(Cast.toNumber(args.COLOR_INDEX != null ? args.COLOR_INDEX : args.INDEX));
         index = MathUtil.clamp(index, 0, 10);
 
         const colours = [
