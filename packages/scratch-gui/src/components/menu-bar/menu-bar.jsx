@@ -80,7 +80,7 @@ const ariaMessages = defineMessages({
     projects: {
         id: 'spark.menuBar.projects',
         defaultMessage: 'Projects',
-        description: 'accessibility text for the projects showcase button'
+        description: 'Menu bar button to open the projects showcase'
     },
     myStuff: {
         id: 'gui.menuBar.myStuff',
