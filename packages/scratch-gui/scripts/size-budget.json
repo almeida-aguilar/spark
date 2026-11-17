@@ -1,0 +1,8 @@
+{
+  "limits": {
+    "initialBundleBytes": 12000000,
+    "precacheBytes": 21000000,
+    "libraryAssetsBytes": 52000000,
+    "buildBytes": 90000000
+  }
+}

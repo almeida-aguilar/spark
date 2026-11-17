@@ -26,6 +26,8 @@ const baseConfig = new ScratchWebpackConfigBuilder({
 })
     .setTarget('browserslist')
     .merge({
+        // SPARK: la PWA publicada no incluye mapas de origen.
+        devtool: false,
         entry: {
             gui: path.join(__dirname, 'src/playground/index.jsx')
         },
@@ -83,17 +85,17 @@ const baseConfig = new ScratchWebpackConfigBuilder({
             },
             {
                 context: '../../node_modules/@scratch/scratch-vm/dist/web',
-                from: 'extension-worker.{js,js.map}',
+                from: 'extension-worker.js',
                 noErrorOnMissing: true
             },
             {
                 context: '../../node_modules/@scratch/scratch-storage/dist/web',
-                from: 'chunks/fetch-worker.*.{js,js.map}',
+                from: 'chunks/fetch-worker.*.js',
                 noErrorOnMissing: true
             },
             {
                 context: '../../node_modules/@scratch/scratch-storage/dist/web',
-                from: 'chunks/vendors-*.{js,js.map}',
+                from: 'chunks/vendors-*.js',
                 noErrorOnMissing: true
             },
             {
@@ -136,8 +138,9 @@ const baseConfig = new ScratchWebpackConfigBuilder({
     .addPlugin(new InjectManifest({
         swSrc: path.join(__dirname, 'src/playground/service-worker.js'),
         swDest: 'sw.js',
-        exclude: [/\.map$/, /^manifest.*\.js$/],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024
+        // SPARK: la biblioteca multimedia y los modelos de vídeo se cachean bajo demanda.
+        exclude: [/\.map$/, /^manifest.*\.js$/, /^static\/library-assets\//, /^chunks\/mediapipe\//],
+        maximumFileSizeToCacheInBytes: 12 * 1024 * 1024
     }));
 
 module.exports = baseConfig.get();

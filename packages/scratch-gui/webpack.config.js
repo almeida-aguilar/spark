@@ -98,17 +98,17 @@ const baseConfig = new ScratchWebpackConfigBuilder(
             },
             {
                 context: '../../node_modules/@scratch/scratch-vm/dist/web',
-                from: 'extension-worker.{js,js.map}',
+                from: 'extension-worker.js',
                 noErrorOnMissing: true
             },
             {
                 context: '../../node_modules/@scratch/scratch-storage/dist/web',
-                from: 'chunks/fetch-worker.*.{js,js.map}',
+                from: 'chunks/fetch-worker.*.js',
                 noErrorOnMissing: true
             },
             {
                 context: '../../node_modules/@scratch/scratch-storage/dist/web',
-                from: 'chunks/vendors-*.{js,js.map}',
+                from: 'chunks/vendors-*.js',
                 noErrorOnMissing: true
             },
             {
@@ -161,11 +161,19 @@ const distStandaloneConfig = baseConfig.clone()
         }
     });
 
+// SPARK: la PWA de producción solo publica el editor; el resto de entradas son
+// ejemplos de desarrollo y no forman parte del artefacto desplegado.
+const isProductionBuild = process.env.NODE_ENV === 'production';
+
 // build the examples and debugging tools in `build/`
 const buildConfig = baseConfig.clone()
     .enableDevServer(process.env.PORT || 8601)
     .merge({
-        entry: {
+        // SPARK: los mapas de origen no se publican en la PWA de producción.
+        devtool: isProductionBuild ? false : 'cheap-module-source-map',
+        entry: isProductionBuild ? {
+            gui: './src/playground/index.jsx'
+        } : {
             gui: './src/playground/index.jsx',
             guistandalone: './src/playground/standalone.jsx',
             blocksonly: './src/playground/blocks-only.jsx',
@@ -187,64 +195,72 @@ const buildConfig = baseConfig.clone()
         chunks: ['gui'],
         template: 'src/playground/index.ejs',
         title: 'Spark' // SPARK: producto renombrado
-    }))
-    .addPlugin(new HtmlWebpackPlugin({
+    }));
+
+if (!isProductionBuild) {
+    buildConfig.addPlugin(new HtmlWebpackPlugin({
         ...commonHtmlWebpackPluginOptions,
         chunks: ['guistandalone'],
         filename: 'standalone.html',
         template: 'src/playground/index.ejs',
         title: 'Spark: Standalone Mode' // SPARK:
-    }))
-    .addPlugin(new HtmlWebpackPlugin({
+    }));
+    buildConfig.addPlugin(new HtmlWebpackPlugin({
         ...commonHtmlWebpackPluginOptions,
         chunks: ['blocksonly'],
         filename: 'blocks-only.html',
         template: 'src/playground/index.ejs',
         title: 'Spark: Blocks Only Example' // SPARK:
-    }))
-    .addPlugin(new HtmlWebpackPlugin({
+    }));
+    buildConfig.addPlugin(new HtmlWebpackPlugin({
         ...commonHtmlWebpackPluginOptions,
         chunks: ['compatibilitytesting'],
         filename: 'compatibility-testing.html',
         template: 'src/playground/index.ejs',
         title: 'Spark: Compatibility Testing' // SPARK:
-    }))
-    .addPlugin(new HtmlWebpackPlugin({
+    }));
+    buildConfig.addPlugin(new HtmlWebpackPlugin({
         ...commonHtmlWebpackPluginOptions,
         chunks: ['player'],
         filename: 'player.html',
         template: 'src/playground/index.ejs',
         title: 'Spark: Player Example' // SPARK:
-    }))
-    .addPlugin(new CopyWebpackPlugin({
-        patterns: [
-            {
-                from: 'static',
-                to: 'static'
-            },
-            {
-                from: 'extensions/**',
-                to: 'static',
-                context: 'src/examples'
-            },
-            {
-                from: 'src/playground/projects.html',
-                to: 'projects.html'
-            },
-            {
-                from: path.resolve(__dirname, '../../projects'),
-                to: 'projects'
-            }
-        ]
     }));
+}
+
+buildConfig.addPlugin(new CopyWebpackPlugin({
+    patterns: [
+        {
+            from: 'static',
+            to: 'static'
+        },
+        {
+            from: 'extensions/**',
+            to: 'static',
+            context: 'src/examples'
+        },
+        {
+            from: 'src/playground/projects.html',
+            to: 'projects.html'
+        },
+        {
+            from: path.resolve(__dirname, '../../projects'),
+            to: 'projects'
+        }
+    ]
+}));
 
 // SPARK: service worker solo en builds de producción (evita conflictos en dev/watch)
-if (process.env.NODE_ENV === 'production') {
+if (isProductionBuild) {
     buildConfig.addPlugin(new InjectManifest({
         swSrc: path.join(__dirname, 'src/playground/service-worker.js'),
         swDest: 'sw.js',
-        exclude: [/\.map$/, /^manifest.*\.js$/],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024
+        // SPARK: la biblioteca multimedia y los modelos de vídeo se cachean bajo
+        // demanda (ver service-worker.js) para no descargarlos en el arranque.
+        exclude: [/\.map$/, /^manifest.*\.js$/, /^static\/library-assets\//, /^chunks\/mediapipe\//],
+        // SPARK: gui.js supera los 10 MiB; debe precachearse para que el primer
+        // arranque sin conexión funcione (la ruta runtime aún no lo controla).
+        maximumFileSizeToCacheInBytes: 12 * 1024 * 1024
     }));
 }
 

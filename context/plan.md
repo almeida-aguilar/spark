@@ -161,7 +161,22 @@ PWA gratuita y de código abierto, basada en un fork del editor de Scratch, cent
 
 **Aceptación:** tras una primera visita, con la red desconectada (Playwright `setOffline(true)`) el editor arranca, se pueden crear, guardar, importar y exportar proyectos y cambiar de idioma. La app pasa la comprobación de instalable de Lighthouse.
 
-### Fase 9: Calidad, CI y documentación
+### Fase 9: Compresión de assets y reducción del peso de la PWA
+
+**Tareas**
+
+- Medir el peso actual del bundle inicial, de los chunks y de `static/library-assets` (PNG, WAV y SVG) con un analizador de bundle y guardar la línea base en `docs/`.
+- Comprimir los recursos multimedia locales sin perder la calidad aceptable: optimizar PNG (y valorar WebP/AVIF con alternativa para los navegadores objetivo), minificar SVG y comprimir WAV sin romper la importación/exportación de `.sb3` ni la compatibilidad con Scratch. Actualizar `docs/MEDIA_LICENSES.md` si cambia algún archivo.
+- Reducir el JavaScript de arranque: revisar el splitter de webpack, mover a chunks diferidos lo que no haga falta en el primer render, eliminar mapas de origen de producción y descartar dependencias o extensiones que no se usen (sin reintroducir las podadas en la fase 2).
+- Evitar precachear de entrada la biblioteca multimedia completa: mantener precache del app shell, chunks e idiomas, y pasar los assets grandes a caché bajo demanda con estrategia cache-first, preservando el funcionamiento sin conexión tras la primera visita.
+- Añadir compresión de transferencia (gzip/Brotli) para los recursos versionados, y documentar la configuración del servidor necesaria (o renunciar a ella si el destino no la soporta).
+- Definir un presupuesto de tamaño (bundle inicial, total precacheado y assets de biblioteca) y un script que lo compruebe sobre el build.
+
+**Aceptación:** el peso total descargado y el del bundle inicial bajan respecto a la línea base documentada; la app sigue siendo instalable y funciona sin conexión; los proyectos `.sb3` siguen abriendo en Spark y en Scratch; el presupuesto de tamaño se verifica con el script y las licencias siguen siendo correctas.
+
+**Estado (2026-11-17):** implementada. La biblioteca baja de 54,30 a 45,55 MiB, el bundle inicial de 20,6 a 10,63 MiB y el precache de 80,3 MB a 17,87 MiB. La compresión de transferencia se renuncia por el alojamiento en GitHub Pages. Línea base, medidas y presupuesto en `docs/PWA_SIZE_BUDGET.md`; decisiones en D030. Queda pendiente la verificación e2e offline y Lighthouse de la Fase 8 con el build final.
+
+### Fase 10: Calidad, CI y documentación
 
 **Tareas**
 

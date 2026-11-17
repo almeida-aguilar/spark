@@ -20,6 +20,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const {createHash} = require('node:crypto');
+const {optimizeDirectory} = require('./optimize-library-assets');
 
 const CDN_HOST = 'cdn.assets.scratch.mit.edu';
 const LIBRARIES_DIR = path.join(__dirname, '..', 'src', 'lib', 'libraries');
@@ -152,6 +153,11 @@ const main = async () => {
         fs.writeFileSync(destination, data);
         console.log(`copiado: ${md5ext} (${path.basename(source)})`);
     }
+
+    // Los nombres siguen siendo los md5 originales de Scratch: la optimización
+    // cambia los bytes, pero no el formato ni las referencias de los .sb3.
+    const stats = optimizeDirectory(OUTPUT_DIR);
+    console.log(`optimizados: PNG ${stats.png}, SVG ${stats.svg}, WAV ${stats.wav}`);
 };
 
 main();

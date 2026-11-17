@@ -169,8 +169,8 @@ extensión Traductor (Fase 2). `scratch-sb1-converter` solo sirve para cargar
 | `packages/scratch-gui/src/components/menu-bar/cat_logo.svg`, `nineties_logo.svg`, `prehistoric-logo.svg`, `oldtimey-logo.svg`, `cat-ears.svg` | Variantes easter-egg / avatar |
 | `packages/scratch-gui/static/favicon.ico` | Favicon (`src/playground/index.ejs:17`) |
 
-No existe manifiesto PWA ni `apple-touch-icon` en scratch-gui (los creará la
-Fase 8).
+El manifiesto PWA (`static/manifest.webmanifest`), los iconos 192/512 y el
+`apple-touch-icon` se añadieron en la Fase 8.
 
 ### 4.2 Pantalla de carga
 
@@ -328,7 +328,7 @@ Pendiente:
   fuente que exige la AGPL): está en
   `packages/scratch-gui/src/lib/spark-config.js` (`SPARK_SOURCE_URL`), a la
   espera de confirmación.
-- `README.md` en español e inglés: fase 9.
+- `README.md` en español e inglés: fase 10.
 - Componente `telemetry-modal.jsx`: se elimina en la fase 4.
 - Flujo de conexión de WeDo (texto de Scratch Link): fase 3.
 - Biblioteca multimedia (entradas "Cat" en `sprites.json`, `costumes.json`,
@@ -500,3 +500,22 @@ red externa:
 La extensión Music mantiene sus instrumentos y percusión empaquetados inline
 en `packages/scratch-vm` (manifest con `require('./assets/*.mp3')`); no usan
 la biblioteca ni red.
+
+---
+
+## 9. Estado tras la Fase 9 (2026-11-17)
+
+- **Biblioteca optimizada.** Los mismos 1352 archivos ocupan ahora 47.760.616
+  bytes (45,55 MiB), 8,76 MiB menos que en la línea base. Se optimizan en el
+  momento de descargarlos (`fetch-library-assets.js`) y antes de cada build;
+  los nombres `<md5>.<ext>` y los formatos no cambian, por lo que los JSON y los
+  `.sb3` siguen siendo válidos. Detalles en `docs/MEDIA_LICENSES.md`.
+- **Artefacto PWA.** `npm run build:pwa` genera `packages/scratch-gui/build/`
+  con una sola entrada, sin mapas de origen ni ejemplos de desarrollo. El
+  directorio baja de 121 MiB a 76,72 MiB.
+- **Service worker.** El app shell (incluido `gui.js`) se precachea; la
+  biblioteca y los modelos de MediaPipe se cachean bajo demanda
+  (`CacheFirst`). El precache baja de 80,3 MB a 17,87 MiB.
+- **Presupuesto.** `npm run check:size` valida bundle inicial, precache,
+  biblioteca y tamaño total contra `scripts/size-budget.json`. Línea base,
+  límites y renuncia a gzip/Brotli en `docs/PWA_SIZE_BUDGET.md`.

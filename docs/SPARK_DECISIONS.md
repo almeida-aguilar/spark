@@ -714,3 +714,70 @@ actualización sin recarga automática y soporte de publicación en subruta.
 `scratch-gui`; la compilación y la verificación (offline, Lighthouse, Web
 Bluetooth sin conexión) requieren dependencias instaladas y build.
 
+---
+## D029 — 2026-11-17 — Renumeración de fases y nueva Fase 9: peso de la PWA
+
+**Contexto.** La fase 9 del plan (`context/plan.md`) cubría calidad, CI y
+documentación. La biblioteca multimedia local (`static/library-assets`, ~58 MB
+de PNG, WAV y SVG) y el tamaño del bundle hacen conveniente una fase específica
+de reducción de peso antes de cerrar la calidad.
+
+**Decisión.**
+- La antigua Fase 9 pasa a ser **Fase 10** en `context/plan.md`; se actualizan
+  las referencias en `docs/INVENTORY.md` y en el comentario pendiente de
+  `packages/scratch-gui/src/lib/spark-config.js`.
+- Se crea una nueva **Fase 9: compresión de assets y reducción del peso de la
+  PWA**, con tareas de medición y línea base, optimización de PNG/SVG/WAV,
+  reducción del JavaScript de arranque, precache selectivo en el service worker,
+  compresión de transferencia y un presupuesto de tamaño verificable.
+- La fase mantiene las restricciones ya cerradas: recursos en local (sin CDN),
+  funcionamiento sin conexión y compatibilidad de los `.sb3` con Scratch.
+
+**Alternativas.**
+- Meter la optimización dentro de la Fase 10: descartado porque mezcla
+  cambios de build y de rendimiento con la documentación y la CI.
+- Servir los assets desde un CDN externo: descartado por romper el requisito de
+  funcionamiento 100 % local.
+
+---
+## D030 — 2026-11-17 — Fase 9: optimización de assets y presupuesto de la PWA
+
+**Contexto.** La biblioteca multimedia local ocupaba 56.944.699 bytes (1352
+PNG/WAV/SVG), el build publicado 121 MiB y el precache inicial 80,3 MB. El plan
+pide reducir el peso sin perder instalación, funcionamiento sin conexión ni
+compatibilidad con Scratch.
+
+**Decisión.**
+- **Optimización sin cambiar identificadores.** `optimize-library-assets.js`
+  recomprime los IDAT de PNG, elimina comentarios y espacios entre etiquetas de
+  SVG y convierte el PCM mono a IMA ADPCM en WAV. Los nombres `<md5>.<ext>` y los
+  formatos se mantienen: los JSON y los `.sb3` siguen referenciando el mismo
+  `assetId`. El nombre ya no es el MD5 de los bytes finales, lo cual se documenta
+  en `MEDIA_LICENSES.md`. Se ahorran 8,76 MiB y la operación es idempotente.
+- **Sin dependencias nuevas.** No hay optimizador de imágenes/audio instalado ni
+  en caché offline; se usa `zlib` y un codificador ADPCM propio validado con el
+  decodificador de `scratch-audio`. No se convierten PNG a WebP/AVIF porque el
+  cambio de extensión rompería las referencias `md5ext` de Scratch.
+- **Build de PWA.** `build:pwa` compila `NODE_ENV=production BUILD_TYPE=dev` en
+  `build/` con una sola entrada (`gui`), sin mapas de origen. `npm run build`
+  ejecuta el optimizador y comprueba el presupuesto al terminar.
+- **Precache selectivo.** Se excluyen `static/library-assets/` y
+  `chunks/mediapipe/` del manifiesto de Workbox y se atienden con una ruta
+  `CacheFirst` bajo demanda. Se eleva el límite de precache a 12 MiB para que
+  `gui.js` entre en el manifiesto y el primer arranque sin conexión siga
+  funcionando. El precache baja a 17,87 MiB (529 URL) y el build a 76,72 MiB.
+- **Presupuesto.** `scripts/size-budget.json` fija límites con ~10 % de margen
+  sobre la medida final; `scripts/check-build-size.mjs` los verifica sobre el
+  build. La línea base, las medidas y el método están en `docs/PWA_SIZE_BUDGET.md`.
+- **Compresión de transferencia.** Se renuncia a gzip/Brotli porque GitHub Pages
+  no permite configurar cabeceras ni variantes precomprimidas; se documenta cómo
+  habilitarla en un alojamiento propio.
+
+**Alternativas.**
+- Renombrar los assets con el MD5 nuevo y reescribir los JSON: descartado porque
+  invalidaría los `.sb3` existentes y la interoperabilidad con Scratch.
+- `splitChunks` con grupos por dependencia: descartado porque subió el bundle
+  inicial de 10,63 MiB a 16,24 MiB al cargar de entrada módulos diferidos.
+- Precomprimir y subir `.gz`/`.br`: descartado por no ser compatible con el
+  alojamiento estático elegido.
+

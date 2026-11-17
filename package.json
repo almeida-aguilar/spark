@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "build": "cross-env NODE_ENV=production npm run --workspaces build",
+    "check:size": "npm run check:size --workspace=packages/scratch-gui",
     "clean": "npm run --workspaces clean",
     "generate:projects": "node scripts/generate-projects-data.js",
     "prepare": "husky install",

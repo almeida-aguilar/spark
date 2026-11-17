@@ -15,8 +15,14 @@ Scratch media library.
   (<https://creativecommons.org/licenses/by-sa/2.0/>). This is how Scratch
   publishes its images and sounds (<https://scratch.mit.edu/info/credits/>).
 - **License notice in the application**: the "About Spark" dialog mentions that
-  Spark is based on Scratch and shows the link to the source code. Spark adds
-  no media of its own to the library.
+  Spark is based on Scratch and shows the link to the source code. The five
+  Spark brand assets added to the library are original work (AGPL-3.0-only),
+  as noted below.
+- **Local optimization**: `scripts/optimize-library-assets.js` recompresses the
+  PNG, SVG and WAV files in place. Filenames and formats are unchanged so the
+  library JSON and `.sb3` references stay valid; consequently a filename is no
+  longer the MD5 of the stored bytes. The optimization runs when fetching the
+  library and during `npm run build` (see `docs/PWA_SIZE_BUDGET.md`).
 
 The music and WeDo 2.0 extension assets bundled inside
 `packages/scratch-vm` keep their original distribution within the Scratch
