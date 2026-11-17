@@ -1200,10 +1200,11 @@ class VirtualMachine extends EventEmitter {
      * @param {!string} locale       current locale
      * @param {!object} messages     builtin messages map for current locale
      * @returns {Promise} Promise that resolves when all the blocks have been
-     *     updated for a new locale (or empty if locale hasn't changed.)
+     *     updated for the locale and messages.
      */
     setLocale (locale, messages) {
-        if (locale !== formatMessage.setup().locale) {
+        const current = formatMessage.setup();
+        if (locale !== current.locale || messages !== current.translations[locale]) {
             formatMessage.setup({locale: locale, translations: {[locale]: messages}});
         }
         return this.extensionManager.refreshBlocks();

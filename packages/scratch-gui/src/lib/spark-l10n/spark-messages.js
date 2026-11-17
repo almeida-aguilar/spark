@@ -1,11 +1,21 @@
-// SPARK: traducciones propias de Spark (fase 7). Al menos es/en; el resto
-// recurre al inglés vía defaultMessage de react-intl.
+// SPARK: traducciones propias de Spark (fase 7). Incluye es, es-419 y en;
+// el resto recurre al inglés vía defaultMessage de react-intl.
 const en = {
     'wedo2.turnLightOff': 'turn light off',
     'wedo2.setLightColourByIndex': 'set light color to [COLOR_INDEX]',
     'wedo2.setLightColourPicker': 'set light colour to [COLOR]',
     'wedo2.whenHubButtonPressed': 'when hub button pressed',
     'wedo2.hubButtonPressed': 'hub button pressed?',
+    'wedo2.lightColor.pink': 'pink',
+    'wedo2.lightColor.purple': 'purple',
+    'wedo2.lightColor.blue': 'blue',
+    'wedo2.lightColor.cyan': 'cyan',
+    'wedo2.lightColor.teal': 'teal',
+    'wedo2.lightColor.green': 'green',
+    'wedo2.lightColor.yellow': 'yellow',
+    'wedo2.lightColor.orange': 'orange',
+    'wedo2.lightColor.red': 'red',
+    'wedo2.lightColor.white': 'white',
     'spark.menuBar.projects': 'Projects',
     'spark.menuBar.save': 'Save',
     'spark.about.basedOn': 'Spark is based on the Scratch 3 editor, a project of the Scratch Foundation. Scratch is licensed under the GNU Affero General Public License v3.0.',
@@ -47,6 +57,16 @@ const es = {
     'wedo2.setLightColourPicker': 'fijar color de la luz a [COLOR]',
     'wedo2.whenHubButtonPressed': 'al presionar el botón del hub',
     'wedo2.hubButtonPressed': '¿botón del hub presionado?',
+    'wedo2.lightColor.pink': 'rosa',
+    'wedo2.lightColor.purple': 'morado',
+    'wedo2.lightColor.blue': 'azul',
+    'wedo2.lightColor.cyan': 'cian',
+    'wedo2.lightColor.teal': 'verde azulado',
+    'wedo2.lightColor.green': 'verde',
+    'wedo2.lightColor.yellow': 'amarillo',
+    'wedo2.lightColor.orange': 'naranja',
+    'wedo2.lightColor.red': 'rojo',
+    'wedo2.lightColor.white': 'blanco',
     'spark.menuBar.projects': 'Proyectos',
     'spark.menuBar.save': 'Guardar',
     'spark.about.basedOn': 'Spark se basa en el editor Scratch 3, un proyecto de la Scratch Foundation. Scratch se distribuye bajo la Licencia Pública General Affero de GNU v3.0.',
@@ -82,7 +102,26 @@ const es = {
     'spark.webglModal.description': 'Lamentablemente, parece que tu navegador o tu ordenador <a>{webGlLink}</a>. Esta tecnología es necesaria para que Spark funcione.'
 };
 
-const sparkMessages = {en, es};
+// El español latinoamericano comparte las cadenas de los bloques y los colores.
+const es419 = {
+    'wedo2.turnLightOff': 'apagar luz',
+    'wedo2.setLightColourByIndex': 'fijar color de la luz a [COLOR_INDEX]',
+    'wedo2.setLightColourPicker': 'fijar color de la luz a [COLOR]',
+    'wedo2.whenHubButtonPressed': 'al presionar el botón del hub',
+    'wedo2.hubButtonPressed': '¿botón del hub presionado?',
+    'wedo2.lightColor.pink': 'rosa',
+    'wedo2.lightColor.purple': 'morado',
+    'wedo2.lightColor.blue': 'azul',
+    'wedo2.lightColor.cyan': 'cian',
+    'wedo2.lightColor.teal': 'verde azulado',
+    'wedo2.lightColor.green': 'verde',
+    'wedo2.lightColor.yellow': 'amarillo',
+    'wedo2.lightColor.orange': 'naranja',
+    'wedo2.lightColor.red': 'rojo',
+    'wedo2.lightColor.white': 'blanco'
+};
+
+const sparkMessages = {en, es, 'es-419': es419};
 
 /**
  * Devuelve las cadenas propias de Spark para un locale, con retroceso a inglés.

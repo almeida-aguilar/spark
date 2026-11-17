@@ -192,6 +192,7 @@ class Blocks extends React.Component {
             this.props.extensionLibraryVisible !== nextProps.extensionLibraryVisible ||
             this.props.customProceduresVisible !== nextProps.customProceduresVisible ||
             this.props.locale !== nextProps.locale ||
+            this.props.messages !== nextProps.messages ||
             this.props.anyModalVisible !== nextProps.anyModalVisible ||
             this.props.stageSize !== nextProps.stageSize
         );
@@ -209,7 +210,14 @@ class Blocks extends React.Component {
             this.requestToolboxUpdate();
         }
 
+        const localeChanged = prevProps.locale !== this.props.locale ||
+            prevProps.messages !== this.props.messages ||
+            this.props.locale !== this.props.vm.getLocale();
+
         if (this.props.isVisible === prevProps.isVisible) {
+            if (this.props.isVisible && localeChanged) {
+                this.setLocale();
+            }
             if (this.props.stageSize !== prevProps.stageSize) {
                 // force workspace to redraw for the new stage size
                 window.dispatchEvent(new Event('resize'));
@@ -220,8 +228,8 @@ class Blocks extends React.Component {
         // @todo hack to reload the workspace due to gui bug #413
         if (this.props.isVisible) { // Scripts tab
             this.workspace.setVisible(true);
-            if (prevProps.locale !== this.props.locale || this.props.locale !== this.props.vm.getLocale()) {
-                // call setLocale if the locale has changed, or changed while the blocks were hidden.
+            if (localeChanged) {
+                // call setLocale if the locale or its messages have changed, or changed while hidden.
                 // vm.getLocale() will be out of sync if locale was changed while not visible
                 this.setLocale();
             } else {

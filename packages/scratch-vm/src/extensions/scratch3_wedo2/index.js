@@ -1264,16 +1264,86 @@ class Scratch3WeDo2Blocks {
                 LIGHT_COLOR_INDEX: {
                     acceptReporters: true,
                     items: [
-                        {text: 'pink', value: '1'},
-                        {text: 'purple', value: '2'},
-                        {text: 'blue', value: '3'},
-                        {text: 'cyan', value: '4'},
-                        {text: 'teal', value: '5'},
-                        {text: 'green', value: '6'},
-                        {text: 'yellow', value: '7'},
-                        {text: 'orange', value: '8'},
-                        {text: 'red', value: '9'},
-                        {text: 'white', value: '10'}
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.pink',
+                                default: 'pink',
+                                description: 'label for pink element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '1'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.purple',
+                                default: 'purple',
+                                description: 'label for purple element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '2'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.blue',
+                                default: 'blue',
+                                description: 'label for blue element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '3'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.cyan',
+                                default: 'cyan',
+                                description: 'label for cyan element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '4'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.teal',
+                                default: 'teal',
+                                description: 'label for teal element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '5'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.green',
+                                default: 'green',
+                                description: 'label for green element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '6'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.yellow',
+                                default: 'yellow',
+                                description: 'label for yellow element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '7'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.orange',
+                                default: 'orange',
+                                description: 'label for orange element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '8'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.red',
+                                default: 'red',
+                                description: 'label for red element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '9'
+                        },
+                        {
+                            text: formatMessage({
+                                id: 'wedo2.lightColor.white',
+                                default: 'white',
+                                description: 'label for white element in light color menu for LEGO WeDo 2 extension'
+                            }),
+                            value: '10'
+                        }
                     ]
                 },
                 MOTOR_ID: {

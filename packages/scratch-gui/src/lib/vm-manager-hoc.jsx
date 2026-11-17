@@ -40,6 +40,11 @@ const vmManagerHOC = function (WrappedComponent) {
             }
         }
         componentDidUpdate (prevProps) {
+            // Los mensajes llegan de forma asíncrona; el VM debe recibirlos
+            // aunque el locale no haya cambiado.
+            if (prevProps.locale !== this.props.locale || prevProps.messages !== this.props.messages) {
+                this.props.vm.setLocale(this.props.locale, this.props.messages);
+            }
             // if project is in loading state, AND fonts are loaded,
             // and they weren't both that way until now... load project!
             if (this.props.isLoadingWithId && this.props.fontsLoaded &&

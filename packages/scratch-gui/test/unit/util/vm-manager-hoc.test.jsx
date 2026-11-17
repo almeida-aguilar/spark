@@ -228,4 +228,37 @@ describe('VMManagerHOC', () => {
         // delay needed since vm.loadProject is async
         setTimeout(() => expect(mockedOnLoadedProject).toHaveBeenCalledTimes(0), 1);
     });
+    test('updates the VM when locale messages arrive after mount', () => {
+        const Component = () => <div />;
+        const WrappedComponent = vmManagerHOC(Component);
+        const {rerender} = render(
+            <WrappedComponent
+                isPlayerOnly
+                isStarted={false}
+                store={store}
+                vm={vm}
+            />
+        );
+        expect(vm.setLocale).toHaveBeenCalledTimes(1);
+
+        const messages = {'wedo2.turnLightOff': 'apagar luz'};
+        const loadedStore = mockStore({
+            scratchGui: {
+                projectState: {},
+                mode: {},
+                vmStatus: {}
+            },
+            locales: {locale: 'es', messages}
+        });
+        rerender(
+            <WrappedComponent
+                isPlayerOnly
+                isStarted={false}
+                store={loadedStore}
+                vm={vm}
+            />
+        );
+        expect(vm.setLocale).toHaveBeenCalledTimes(2);
+        expect(vm.setLocale).toHaveBeenLastCalledWith('es', messages);
+    });
 });

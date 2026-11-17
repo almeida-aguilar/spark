@@ -1591,3 +1591,18 @@ test('clearFlyoutBlocks removes all of the flyout blocks', t => {
 
     t.end();
 });
+
+test('setLocale applies messages loaded after the locale is first set', t => {
+    const formatMessage = require('format-message');
+    const message = {id: 'test.lateMessages', default: 'default'};
+    const vm = new VirtualMachine();
+
+    vm.setLocale('es', {'test.lateMessages': 'primero'});
+    t.equal(formatMessage(message), 'primero');
+
+    vm.setLocale('es', {'test.lateMessages': 'segundo'});
+    t.equal(formatMessage(message), 'segundo');
+
+    vm.setLocale('en', {});
+    t.end();
+});
