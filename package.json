@@ -30,7 +30,6 @@
     "check:licenses": "node scripts/check-dependency-licenses.js",
     "check:size": "npm run check:size --workspace=packages/scratch-gui",
     "clean": "npm run --workspaces clean",
-    "generate:projects": "node scripts/generate-projects-data.js",
     "prepare": "husky install",
     "refresh-gh-workflow": "ts-node scripts/update-gha-workflows.ts",
     "start": "npm --workspace @scratch/scratch-gui start",

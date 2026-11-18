@@ -221,9 +221,9 @@ class MenuBar extends React.Component {
     handleCloseAbout () {
         this.setState({aboutOpen: false});
     }
-    // SPARK: abre el catálogo de proyectos en una nueva pestaña
+    // SPARK: abre el catálogo de proyectos de Spark
     handleOpenProjects () {
-        window.open('projects.html', '_blank', 'noopener,noreferrer');
+        window.open('https://almeida-aguilar.github.io/awesome-spark/', '_blank', 'noopener,noreferrer');
     }
     handleSetMode (mode) {
         return () => {
