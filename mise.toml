@@ -1,0 +1,3 @@
+# SPARK: toolchain para desarrollo local (Node/npm). La versión debe coincidir con .nvmrc.
+[tools]
+node = "24.22.2"

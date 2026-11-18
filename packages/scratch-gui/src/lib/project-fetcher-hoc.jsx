@@ -153,8 +153,10 @@ const ProjectFetcherHOC = function (WrappedComponent) {
         setProjectId: PropTypes.func
     };
     ProjectFetcherComponent.defaultProps = {
-        assetHost: 'https://assets.scratch.mit.edu',
-        projectHost: 'https://projects.scratch.mit.edu'
+        // SPARK: sin servidores de Scratch; los proyectos y assets se cargan del
+        // almacenamiento local del navegador.
+        assetHost: '',
+        projectHost: ''
     };
 
     const mapStateToProps = state => ({

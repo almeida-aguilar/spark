@@ -1,11 +1,10 @@
 // SPARK: configuración propia de Spark.
-// SPARK: PENDIENTE (Fase 10): confirmar la URL pública del repositorio de Spark.
-// Mientras no se confirme, el enlace al código fuente se muestra como texto plano
-// en el diálogo "Acerca de" y no como enlace.
-const SPARK_SOURCE_URL = 'https://almeida-aguilar.github.io/spark/fundation/';
+// URL pública del repositorio/código fuente de Spark (enlace en "Acerca de",
+// requerido por la AGPL al servirse en red).
+const SPARK_SOURCE_URL = 'https://github.com/almeida-aguilar/spark';
 
-// SPARK: PENDIENTE (Fase 1): dirección de contacto del proyecto (issues/email).
-const SPARK_CONTACT_URL = '';
+// Dirección de contacto del proyecto (issues). Puede ampliarse con email si se define.
+const SPARK_CONTACT_URL = 'https://github.com/almeida-aguilar/spark/issues';
 
 export {
     SPARK_SOURCE_URL,

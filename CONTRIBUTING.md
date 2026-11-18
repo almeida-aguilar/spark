@@ -3,67 +3,80 @@
 Spark es un fork independiente del editor de Scratch, centrado en LEGO WeDo 2.0 y con funcionamiento 100 % local.
 Este documento explica cómo contribuir al proyecto.
 
-## Flujo de trabajo recomendado
+## Requisitos y preparación
 
-1. **Crea una rama** desde `main` con un nombre descriptivo (por ejemplo `fase-web-bluetooth` o `fix-import-sb3`).
-   Usa nombres cortos y en minúsculas, sin espacios (guiones o guiones bajos).
-2. **Commits pequeños y con mensajes claros.** Spark usa [Conventional Commits](https://www.conventionalcommits.org/).
-   Ejemplos:
-   - `feat: añadir cola de operaciones GATT al puente Web Bluetooth`
-   - `fix: corregir descodificación base64 al escribir`
-   - `docs: actualizar inventario de URLs externas`
-   - El hook de husky (commitlint) validará el formato; si falla, corrige el mensaje y haz un nuevo commit.
-3. **Prueba antes de subir:**
-   - `npm run build` (o `npm run build --workspace=<package>`) debe pasar sin errores.
-   - `npm test` (o `npm test --workspace=<package>`) debe pasar sin fallos.
-   - `npm run lint` (o `npm run test:lint`) sin errores.
-4. **Abre un pull request** describiendo el cambio, los tests añadidos y cualquier riesgo conocido.
+- Node.js según `.nvmrc` (incluye npm). Con [mise](https://mise.jdx.dev/) (recomendado): `mise trust && mise install` (usa `mise.toml`).
+- Instala dependencias desde la raíz: `npm ci`.
+- Spark es un monorepo con npm workspaces; los comandos pueden ejecutarse desde la raíz o con
+  `--workspace=packages/<paquete>`.
+
+## Flujo de trabajo
+
+1. **Rama:** crea una rama desde la rama principal de trabajo con un nombre descriptivo (p. ej. `feat/bluetooth-reconnect`
+   o `fix/import-sb3`). Usa nombres cortos, en minúsculas y sin espacios.
+2. **Commits:** pequeños y con mensajes claros. Se usa [Conventional Commits](https://www.conventionalcommits.org/).
+   Ejemplos: `feat: ...`, `fix: ...`, `docs: ...`, `test: ...`, `chore: ...`. Husky + commitlint validan el formato en
+   cada commit.
+3. **Pruebas antes de enviar:**
+   - `npm run build` (o por paquete) sin errores.
+   - `npm test` (o por paquete) sin fallos. En `scratch-gui`, `npm test` incluye lint, unit, integración y Playwright.
+   - `npm run test:lint` en el paquete afectado (o el script de lint correspondiente) sin errores.
+4. **Pull request:** describe el cambio, las pruebas añadidas/ejecutadas y cualquier riesgo o limitación (p. ej.
+   verificación pendiente con hardware real).
 
 ## Convenciones de código
 
-- **Idioma:** los paquetes existentes siguen su stack heredado (JavaScript, webpack, Jest/Tap). Los nuevos paquetes usan
-  TypeScript + Vite + Vitest. No introduzcas TypeScript en paquetes JavaScript ni Vitest en paquetes Jest, a menos que
-  la migración sea el objetivo explícito.
-- **Estilo:** sigue las convenciones del paquete al que toques. Usa `eslint-config-scratch` (config plana ESLint 9).
-  El paquete `task-herder` usa también Prettier; corre `npm run format` allí.
-- **Comentarios:** explica el código actual, no su historia. No references implementaciones previas o estados
-  intermedios. Si un enfoque parece contraintuitivo, explica por qué es correcto ahora.
-- **Strings de usuario:** en `scratch-gui` usa `react-intl` / `FormattedMessage`. No codifiques inglés en JSX.
-- **Dependencias:** antes de añadir una nueva dependencia, verifica su licencia y añádela a `THIRD_PARTY_LICENSES`.
-  Usa `npm install <pkg>@<version> --workspace=packages/<package>` para instalar (actualiza `package.json` y el lockfile).
+- **Stack:** los paquetes existentes siguen su stack heredado (JavaScript, webpack, Jest/Tap). Los paquetes nuevos usan
+  TypeScript + Vite + Vitest (p. ej. `task-herder`). No introduzcas TypeScript en paquetes JavaScript ni Vitest en
+  paquetes Jest salvo que la migración sea el objetivo explícito.
+- **Estilo:** sigue las convenciones del paquete. ESLint 9 con configuración plana (`eslint-config-scratch`). Si el
+  paquete usa Prettier (p. ej. `task-herder`), ejecuta `npm run format`.
+- **Marcado Spark:** minimiza el diff sobre archivos upstream para facilitar la integración de cambios futuros. El código
+  nuevo va, cuando sea posible, en módulos propios y los cambios en archivos upstream se marcan con el comentario
+  `// SPARK:`.
+- **Cadenas visibles:** en `scratch-gui` usa `react-intl` / `FormattedMessage`; no codifiques texto de usuario en inglés
+  directamente en JSX.
+- **Dependencias:** antes de añadir una dependencia, verifica su licencia y actualiza `THIRD_PARTY_LICENSES.md`
+  (`node scripts/generate-third-party-licenses.js`). No introduzcas recursos o dominios externos en la app/build.
+- **Licencias y recursos:** no elimines avisos de copyright ni archivos `LICENSE` originales. No inventes datos legales
+  (licencias, marcas); si algo no se puede verificar, exclúyelo y anótalo como pendiente.
 
 ## Reglas de trabajo
 
-1. Haz un build limpio y ejecuta los tests existentes antes de cambiar anything. Guarda el resultado como línea base.
-2. Una fase = una rama o serie de commits con mensajes claros.
-3. Cada fase añade o actualiza tests. Los tests que fallaban antes de empezar se documentan, no se ocultan.
-4. Cualquier decisión nueva se registra en `docs/SPARK_DECISIONS.md` (fecha, contexto, decisión, alternativas).
-5. Nunca introduzcas dependencias sin comprobar su licencia y añadirla a `THIRD_PARTY_LICENSES`.
-6. No elimines los avisos de copyright ni los archivos LICENSE originales.
-7. Minimiza el diff sobre archivos upstream para poder integrar cambios futuros de Scratch. El código nuevo va en un
-   directorio propio (por ejemplo `spark/`) y los cambios en archivos upstream se marcan con el comentario `// SPARK:`.
-8. Cuando algo no se pueda probar sin hardware real (el hub WeDo 2.0), usa mocks y deja la verificación en la lista
-   de QA manual.
-9. No inventes datos legales (licencias de recursos, textos de marca). Si no puedes verificar algo, exclúyelo y anótalo
-   como pendiente.
+1. Comprueba el estado base (build/tests) antes de cambios grandes y registra la línea base si aplica.
+2. Cada cambio significativo añade o actualiza pruebas. Los fallos preexistentes se documentan, no se ocultan.
+3. Las decisiones de arquitectura y alcance se registran en [`docs/SPARK_DECISIONS.md`](docs/SPARK_DECISIONS.md)
+   (fecha, contexto, decisión, alternativas).
+4. Lo que no se pueda probar sin hardware real (hub LEGO WeDo 2.0) se cubre con mocks y se deja en la lista de QA
+   manual (`context/plan.md`, sección 5).
 
-## Cómo integrar cambios upstream de Scratch
+## Integrar cambios upstream de Scratch
 
-- Revisa regularmente los cambios en los repositorios de los paquetes de Scratch incluidos en el monorepo.
-- Cuando actualices un paquete upstream, resuelve los conflictos manualmente y verifica que los cambios de Spark
-  (marcados con `// SPARK:`) se mantienen.
-- Si un cambio upstream requiere modificar muchos archivos, detente y propone una alternativa más aislada; registra la
-  decisión en `docs/SPARK_DECISIONS.md`.
+Spark se basa en el monorepo `scratch-editor` de la Scratch Foundation. Para incorporar cambios upstream:
+
+1. **Identifica el origen y el alcance:** revisa los commits/releases relevantes en los paquetes incluidos en este
+   monorepo. Prioriza cambios de corrección/seguridad o necesarios para compatibilidad.
+2. **Trabaja en una rama dedicada:** integra en una rama específica (p. ej. `chore/upstream-sync-<fecha>`), no
+   directamente sobre trabajo de funcionalidades.
+3. **Minimiza conflictos:** mantén los cambios de Spark localizados y marcados con `// SPARK:`. Evita refactors amplios
+   mezclados con la sincronización.
+4. **Resuelve conflictos con cuidado:** preserva la semántica de Spark (sin cuentas/backend/analítica, extensiones
+   soportadas, puente Web Bluetooth, almacenamiento local, sin recursos externos). Si un cambio upstream choca con estas
+   restricciones, adapta el cambio o documenta la alternativa.
+5. **Si el diff upstream es grande o invasivo:** detente y propón una alternativa más aislada (parche puntual, wrapper,
+   backport selectivo) y registra la decisión en `docs/SPARK_DECISIONS.md`.
+6. **Verifica tras la integración:** ejecuta build, lint y pruebas (unitarias, integración y e2e/Playwright donde
+   aplique) y revisa manualmente las áreas afectadas. Comprueba que no se reintroducen dependencias de red, cuentas o
+   extensiones eliminadas.
+7. **Actualiza documentación:** si cambian comandos, estructura o decisiones, actualiza `README.md`, `AGENTS.md` y
+   `docs/` según corresponda.
 
 ## Antes de enviar
 
-Revisa que se cumple:
-
-- **Alcance:** los cambios se limitan a lo pedido; nothing extra se ha añadido o modificado.
-- **Correctitud:** la lógica es sólida y se han considerado los casos edge.
-- **Comentarios:** son necesarios, cortos y claros; el código autoexplicativo no tiene comentarios.
-- **Simplicidad:** la implementación es tan simple como lo permite; no quedan abstracciones especulativas.
-- **Documentación:** se ha actualizado `AGENTS.md` y otros archivos de documentación afectados.
-- **Formato de commit:** sigue Conventional Commits (el hook lo validará).
-- **Build y tests:** pasan en el paquete afectado.
+- **Alcance:** los cambios se limitan a lo solicitado.
+- **Correctitud y simplicidad:** lógica sólida, sin abstracciones especulativas.
+- **Pruebas:** build y pruebas del paquete afectado en verde (en la medida de lo posible en el entorno).
 - **Lint:** sin errores.
+- **Documentación:** actualizada si el cambio lo requiere.
+- **Formato de commit:** Conventional Commits (validado por el hook).
+- **CI:** los cambios deben mantener en verde los checks de CI (lint, pruebas, e2e, build y comprobaciones automáticas).

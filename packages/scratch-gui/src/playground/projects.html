@@ -234,7 +234,6 @@
     </div>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     (function () {
       var DATA_URL = 'projects/projects-data.json';
@@ -271,17 +270,101 @@
         render();
       }
 
-      function embedYouTube(html) {
-        return html.replace(
-          /<a href="(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)[^"]*)">[^<]*<\/a>/g,
-          function (_, url, id) {
-            return '<div class="video-embed"><iframe src="https://www.youtube.com/embed/' + id + '" title="YouTube video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe></div>';
-          }
-        );
-      }
-
       function stripFrontMatter(md) {
         return md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+      }
+
+      // SPARK: conversor Markdown básico local (sin CDN ni dependencias externas).
+      function renderMarkdown(md) {
+        var codeBlocks = [];
+        var text = md.replace(/\r\n?/g, '\n');
+
+        text = text.replace(/```([\s\S]*?)```/g, function (_, code) {
+          var i = codeBlocks.length;
+          codeBlocks.push('<pre><code>' + escapeHtml(code.replace(/^\n|\n$/g, '')) + '</code></pre>');
+          return '\n@@CODEBLOCK_' + i + '@@\n';
+        });
+
+        function inline(s) {
+          var out = escapeHtml(s);
+          out = out.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function (_, alt, src) {
+            return '<img src="' + src + '" alt="' + alt + '" loading="lazy">';
+          });
+          out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, label, href) {
+            var safeHref = href.replace(/"/g, '&quot;');
+            var isExternal = /^(https?:)?\/\//i.test(href);
+            var attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+            return '<a href="' + safeHref + '"' + attrs + '>' + label + '</a>';
+          });
+          out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+          out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+          out = out.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+          return out;
+        }
+
+        var lines = text.split('\n');
+        var html = '';
+        var inUl = false;
+        var inOl = false;
+        var paragraph = [];
+
+        function closeLists() {
+          if (inUl) { html += '</ul>'; inUl = false; }
+          if (inOl) { html += '</ol>'; inOl = false; }
+        }
+        function flushParagraph() {
+          if (paragraph.length) {
+            html += '<p>' + paragraph.join('<br>') + '</p>';
+            paragraph = [];
+          }
+        }
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          var trimmed = line.trim();
+          var codeMatch = trimmed.match(/^@@CODEBLOCK_(\d+)@@$/);
+          var hMatch = line.match(/^(#{1,6})\s+(.*)$/);
+          var ulMatch = line.match(/^\s*[-*]\s+(.*)$/);
+          var olMatch = line.match(/^\s*\d+\.\s+(.*)$/);
+
+          if (codeMatch) {
+            flushParagraph();
+            closeLists();
+            html += codeBlocks[Number(codeMatch[1])] || '';
+            continue;
+          }
+          if (!trimmed) {
+            flushParagraph();
+            closeLists();
+            continue;
+          }
+          if (hMatch) {
+            flushParagraph();
+            closeLists();
+            var level = hMatch[1].length;
+            html += '<h' + level + '>' + inline(hMatch[2]) + '</h' + level + '>';
+            continue;
+          }
+          if (ulMatch) {
+            flushParagraph();
+            if (inOl) { html += '</ol>'; inOl = false; }
+            if (!inUl) { html += '<ul>'; inUl = true; }
+            html += '<li>' + inline(ulMatch[1]) + '</li>';
+            continue;
+          }
+          if (olMatch) {
+            flushParagraph();
+            if (inUl) { html += '</ul>'; inUl = false; }
+            if (!inOl) { html += '<ol>'; inOl = true; }
+            html += '<li>' + inline(olMatch[1]) + '</li>';
+            continue;
+          }
+          closeLists();
+          paragraph.push(inline(line));
+        }
+        flushParagraph();
+        closeLists();
+        return html;
       }
 
       function renderCard(p) {
@@ -359,9 +442,7 @@
           })
           .then(function (md) {
             var body = stripFrontMatter(md);
-            var html = (window.marked && window.marked.parse) ? window.marked.parse(body, {breaks: true}) : '<pre>' + escapeHtml(body) + '</pre>';
-            html = embedYouTube(html);
-            byId('detail-body').innerHTML = html;
+            byId('detail-body').innerHTML = renderMarkdown(body);
           })
           .catch(function (err) {
             byId('detail-body').innerHTML = '<p>No se pudieron cargar las instrucciones de este proyecto.</p>';
