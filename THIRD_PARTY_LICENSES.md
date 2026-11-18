@@ -7,7 +7,7 @@ It lists the production dependencies of the monorepo packages and the license
 declared by each one. Full license texts are distributed with the packages
 themselves inside `node_modules/` (each package keeps its own LICENSE file).
 
-Total production dependencies: 539.
+Total production dependencies: 536.
 
 ## (MIT AND Zlib)
 
@@ -62,12 +62,6 @@ Total production dependencies: 539.
 | --- | --- |
 | @blockly/field-grid-dropdown | 6.0.10 |
 
-## Apache License, Version 2.0
-
-| Package | Version |
-| --- | --- |
-| balance-text | 3.3.1 |
-
 ## Apache-2.0
 
 | Package | Version |
@@ -83,6 +77,7 @@ Total production dependencies: 539.
 | @tensorflow/tfjs-core | 4.22.0 |
 | @tensorflow/tfjs-data | 4.22.0 |
 | @transifex/api | 8.0.3 |
+| balance-text | 3.3.1 |
 | blockly | 12.5.1 |
 | blockly/node_modules/xml-name-validator | 5.0.0 |
 | diff-match-patch | 1.0.5 |
@@ -92,8 +87,8 @@ Total production dependencies: 539.
 | long | 4.0.0 |
 | react-ga | 3.3.1 |
 | scratch-blocks | 2.2.6 |
+| scratch-render-fonts | 1.0.258 |
 | spdx-correct | 3.2.0 |
-| typescript | 5.9.3 |
 | validate-npm-package-license | 3.0.4 |
 
 ## Apache-2.0 AND MIT
@@ -250,7 +245,6 @@ Total production dependencies: 539.
 | @formatjs/intl/node_modules/@formatjs/icu-messageformat-parser | 2.9.4 |
 | @formatjs/intl/node_modules/@formatjs/icu-skeleton-parser | 1.8.8 |
 | @microbit/microbit-universal-hex | 0.2.2 |
-| @noble/hashes | 1.8.0 |
 | @radix-ui/primitive | 1.1.6 |
 | @radix-ui/react-arrow | 1.1.12 |
 | @radix-ui/react-collection | 1.1.12 |
@@ -291,7 +285,6 @@ Total production dependencies: 539.
 | @types/offscreencanvas | 2019.3.0 |
 | @types/prop-types | 15.7.15 |
 | @types/react | 18.3.31 |
-| @types/react-dom | 18.3.7 |
 | @types/seedrandom | 2.4.34 |
 | @types/trusted-types | 2.0.7 |
 | @types/usb | 1.5.4 |
@@ -343,6 +336,7 @@ Total production dependencies: 539.
 | clsx | 1.2.1 |
 | color-convert | 2.0.1 |
 | color-name | 1.1.4 |
+| colors | 0.6.2 |
 | combined-stream | 1.0.8 |
 | computed-style-to-inline-style | 3.0.0 |
 | concat-map | 0.0.1 |
@@ -389,6 +383,7 @@ Total production dependencies: 539.
 | fast-json-stable-stringify | 2.1.0 |
 | fast-levenshtein | 2.0.6 |
 | findup | 0.1.5 |
+| findup/node_modules/commander | 2.1.0 |
 | form-data | 4.0.6 |
 | format-message | 6.2.4 |
 | format-message-formats | 6.2.4 |
@@ -490,6 +485,7 @@ Total production dependencies: 539.
 | omggif | 1.0.10 |
 | papaparse | 5.7.0 |
 | parse-color | 1.0.0 |
+| parse-color/node_modules/color-convert | 0.5.3 |
 | parse-headers | 2.0.6 |
 | parse5 | 7.3.0 |
 | path-is-absolute | 1.0.1 |
@@ -643,23 +639,4 @@ Total production dependencies: 539.
 | @csstools/color-helpers | 5.1.0 |
 | @csstools/css-syntax-patches-for-csstree | 1.1.15 |
 | isomorphic-dompurify/node_modules/@csstools/color-helpers | 6.1.2 |
-
-## UNKNOWN (no license declared)
-
-| Package | Version |
-| --- | --- |
-| colors | 0.6.2 |
-| findup/node_modules/commander | 2.1.0 |
-
-## not declared (see LICENSE)
-
-| Package | Version |
-| --- | --- |
-| parse-color/node_modules/color-convert | 0.5.3 |
-
-## not declared (see LICENSE.txt)
-
-| Package | Version |
-| --- | --- |
-| scratch-render-fonts | 1.0.258 |
 

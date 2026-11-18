@@ -26,6 +26,8 @@
   ],
   "scripts": {
     "build": "cross-env NODE_ENV=production npm run --workspaces build",
+    "check:external-resources": "node scripts/check-no-external-resources.js",
+    "check:licenses": "node scripts/check-dependency-licenses.js",
     "check:size": "npm run check:size --workspace=packages/scratch-gui",
     "clean": "npm run --workspaces clean",
     "generate:projects": "node scripts/generate-projects-data.js",

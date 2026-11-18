@@ -15,21 +15,49 @@ const ROOT = path.resolve(__dirname, '..');
 const LOCK = path.join(ROOT, 'package-lock.json');
 const OUTPUT = path.join(ROOT, 'THIRD_PARTY_LICENSES.md');
 
+// Licencias conocidas para dependencias cuyo metadato publicado es incompleto
+// en lockfile/manifest (versiones concretas).
+const LICENSE_FALLBACKS = {
+    'balance-text@3.3.1': 'Apache-2.0',
+    'colors@0.6.2': 'MIT',
+    'dom-walk@0.1.2': 'MIT',
+    'findup@0.1.5': 'MIT',
+    'findup/node_modules/commander@2.1.0': 'MIT',
+    'keymirror@0.1.1': 'Apache-2.0',
+    'parse-color/node_modules/color-convert@0.5.3': 'MIT',
+    'scratch-render-fonts@1.0.258': 'Apache-2.0',
+    'static-module/node_modules/prelude-ls@1.1.2': 'MIT'
+};
+
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 
-const licenseOf = (name, lockLicense) => {
-    if (lockLicense) {
-        return typeof lockLicense === 'string' ? lockLicense : lockLicense.type;
-    }
+const normalizeLicense = license => {
+    if (!license) return null;
+    if (typeof license === 'string') return license;
+    if (license.type) return license.type;
+    if (license.name) return license.name;
+    return null;
+};
+
+const licenseOf = (name, version, lockLicense, lockLicenses) => {
+    const fallbackKey = `${name}@${version}`;
+    if (LICENSE_FALLBACKS[fallbackKey]) return LICENSE_FALLBACKS[fallbackKey];
+
+    const fromLock = normalizeLicense(lockLicense) ||
+        (Array.isArray(lockLicenses) ?
+            lockLicenses.map(normalizeLicense).filter(Boolean).join(' OR ') :
+            normalizeLicense(lockLicenses));
+    if (fromLock) return fromLock;
+
     const manifest = path.join(ROOT, 'node_modules', name, 'package.json');
     if (!fs.existsSync(manifest)) return null;
     try {
         const pkg = readJson(manifest);
         if (pkg.license) {
-            return typeof pkg.license === 'string' ? pkg.license : pkg.license.type;
+            return normalizeLicense(pkg.license);
         }
         if (Array.isArray(pkg.licenses)) {
-            return pkg.licenses.map(l => (typeof l === 'string' ? l : l.type)).join(' OR ');
+            return pkg.licenses.map(normalizeLicense).filter(Boolean).join(' OR ');
         }
         // SPARK: sin campo "license": se busca un archivo de licencia en el paquete.
         const dir = path.join(ROOT, 'node_modules', name);
@@ -52,7 +80,7 @@ const entries = Object.entries(lock.packages || {})
         return {
             name: packageName,
             version: meta.version,
-            license: licenseOf(packageName, meta.license)
+            license: licenseOf(packageName, meta.version, meta.license, meta.licenses)
         };
     })
     .filter(entry => entry.version);
@@ -62,6 +90,15 @@ for (const entry of entries) {
     const license = entry.license || 'UNKNOWN (no license declared)';
     if (!byLicense.has(license)) byLicense.set(license, []);
     byLicense.get(license).push(entry);
+}
+
+const unknown = entries.filter(e => !e.license);
+if (unknown.length) {
+    console.error('Dependencies with unknown license:');
+    for (const e of unknown) {
+        console.error(`- ${e.name}@${e.version}`);
+    }
+    process.exit(1);
 }
 
 const lines = [

@@ -75,6 +75,10 @@ jobs:
         if: ${{ steps.filter.outputs.any-workspace == 'true' }}
         run: npm run build
 
+      - name: Check for external resources/domains in build
+        if: ${{ steps.filter.outputs.any-workspace == 'true' }}
+        run: node scripts/check-no-external-resources.js
+
       - name: Store Build Artifacts
         if: ${{ steps.filter.outputs.any-workspace == 'true' }}
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
@@ -85,6 +89,19 @@ jobs:
             packages/**/build
             packages/**/dist
             packages/**/playground
+
+  checks:
+    name: Compliance Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: '.nvmrc'
+      - name: Check dependency license compliance
+        run: node scripts/check-dependency-licenses.js
+      - name: Check for external resources/domains
+        run: node scripts/check-no-external-resources.js
 
   test:
     name: Test
