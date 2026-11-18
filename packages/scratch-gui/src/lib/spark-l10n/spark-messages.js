@@ -102,24 +102,11 @@ const es = {
     'spark.webglModal.description': 'Lamentablemente, parece que tu navegador o tu ordenador <a>{webGlLink}</a>. Esta tecnología es necesaria para que Spark funcione.'
 };
 
-// El español latinoamericano comparte las cadenas de los bloques y los colores.
-const es419 = {
-    'wedo2.turnLightOff': 'apagar luz',
-    'wedo2.setLightColourByIndex': 'fijar color de la luz a [COLOR_INDEX]',
-    'wedo2.setLightColourPicker': 'fijar color de la luz a [COLOR]',
-    'wedo2.whenHubButtonPressed': 'al presionar el botón del hub',
-    'wedo2.hubButtonPressed': '¿botón del hub presionado?',
-    'wedo2.lightColor.pink': 'rosa',
-    'wedo2.lightColor.purple': 'morado',
-    'wedo2.lightColor.blue': 'azul',
-    'wedo2.lightColor.cyan': 'cian',
-    'wedo2.lightColor.teal': 'verde azulado',
-    'wedo2.lightColor.green': 'verde',
-    'wedo2.lightColor.yellow': 'amarillo',
-    'wedo2.lightColor.orange': 'naranja',
-    'wedo2.lightColor.red': 'rojo',
-    'wedo2.lightColor.white': 'blanco'
-};
+// El español latinoamericano hereda las cadenas de español y puede redefinir
+// términos específicos cuando difieran.
+const es419 = Object.assign({}, es, {
+    // Variantes regionales de Spark pueden añadirse aquí.
+});
 
 const sparkMessages = {en, es, 'es-419': es419};
 

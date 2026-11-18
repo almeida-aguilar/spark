@@ -30,6 +30,14 @@ describe('spark-messages', () => {
         expect(messages['wedo2.lightColor.white']).toBe('blanco');
     });
 
+    test('Spanish (Latin America) translates Spark menu bar labels', () => {
+        const messages = getSparkMessages('es-419');
+
+        expect(messages['spark.menuBar.projects']).toBe('Proyectos');
+        expect(messages['spark.menuBar.about']).toBe('Acerca de Spark');
+        expect(messages['spark.menuBar.save']).toBe('Guardar');
+    });
+
     test('unknown locales fall back to the English strings', () => {
         const messages = getSparkMessages('fr');
 
