@@ -18,9 +18,9 @@ presupuesto que comprueba `npm run check:size` sobre
 El presupuesto está en `packages/scratch-gui/scripts/size-budget.json`. Se
 ejecuta automáticamente al final de `npm run build` y también de forma
 independiente con `npm run check:size` (en la raíz o en el workspace). En un
-clone nuevo hay que ejecutar antes `npm run fetch-library-assets
---workspace=packages/scratch-gui`: la biblioteca está en `.gitignore` y el
-optimizador solo trabaja sobre los archivos ya descargados.
+clone nuevo, `npm run build` y `npm start` descargan automáticamente los assets
+de la biblioteca (`npm run fetch-library-assets`) si faltan; la biblioteca está
+en `.gitignore` y requiere acceso a la red en la primera descarga.
 
 ## Línea base y resultado
 
