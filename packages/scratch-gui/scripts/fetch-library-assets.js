@@ -103,15 +103,37 @@ const main = async () => {
         }
     }
 
-    const pending = Array.from(all).filter(md5ext => {
-        const file = path.join(OUTPUT_DIR, md5ext);
-        try {
-            return fs.statSync(file).size === 0;
-        } catch {
-            return true;
+    // Los assets locales de la marca no vienen del CDN: se copian desde sus
+    // archivos fuente, nombrándolos con el md5 de su contenido (la biblioteca
+    // referencia los assets por md5ext).
+    const repoRoot = path.join(__dirname, '..', '..', '..');
+    const localMd5exts = new Set();
+    for (const localAsset of LOCAL_ASSETS) {
+        const source = path.join(repoRoot, localAsset);
+        const data = fs.readFileSync(source);
+        const md5ext = `${createHash('md5').update(data).digest('hex')}${path.extname(source)}`;
+        localMd5exts.add(md5ext);
+        const destination = path.join(OUTPUT_DIR, md5ext);
+        if (!fs.existsSync(destination)) {
+            fs.writeFileSync(destination, data);
+            console.log(`copiado: ${md5ext} (${path.basename(source)})`);
         }
-    });
-    console.log(`biblioteca: ${all.size} assets únicos; por descargar: ${pending.length}`);
+    }
+
+    const pending = Array.from(all)
+        .filter(md5ext => !localMd5exts.has(md5ext))
+        .filter(md5ext => {
+            const file = path.join(OUTPUT_DIR, md5ext);
+            try {
+                return fs.statSync(file).size === 0;
+            } catch {
+                return true;
+            }
+        });
+    console.log(
+        `biblioteca: ${all.size} assets únicos; locales: ${localMd5exts.size}; ` +
+        `por descargar: ${pending.length}`
+    );
 
     let done = 0;
     let failed = 0;
@@ -136,22 +158,20 @@ const main = async () => {
     console.log(`descargados: ${done}; fallos: ${failed}`);
     if (failures.length > 0) {
         console.log(failures.slice(0, 10).join('\n'));
-        process.exitCode = 1;
     }
 
-    // Los assets locales de la marca no vienen del CDN: se copian desde sus
-    // archivos fuente, nombrándolos con el md5 de su contenido (la biblioteca
-    // referencia los assets por md5ext).
-    const repoRoot = path.join(__dirname, '..', '..', '..');
-    for (const localAsset of LOCAL_ASSETS) {
-        const source = path.join(repoRoot, localAsset);
-        const data = fs.readFileSync(source);
-        const hash = createHash('md5').update(data);
-        const md5ext = `${hash.digest('hex')}${path.extname(source)}`;
-        const destination = path.join(OUTPUT_DIR, md5ext);
-        if (fs.existsSync(destination)) continue;
-        fs.writeFileSync(destination, data);
-        console.log(`copiado: ${md5ext} (${path.basename(source)})`);
+    const missing = Array.from(all).filter(md5ext => {
+        const file = path.join(OUTPUT_DIR, md5ext);
+        try {
+            return fs.statSync(file).size === 0;
+        } catch {
+            return true;
+        }
+    });
+    if (missing.length > 0) {
+        console.error(`faltan ${missing.length} assets: ${missing.slice(0, 10).join(', ')}`);
+        process.exitCode = 1;
+        return;
     }
 
     // Los nombres siguen siendo los md5 originales de Scratch: la optimización
