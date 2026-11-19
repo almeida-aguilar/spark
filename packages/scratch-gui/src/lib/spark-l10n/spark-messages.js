@@ -46,6 +46,9 @@ const en = {
     'spark.gui.defaultProjectTitle': 'Spark Project',
     'spark.menuBar.about': 'About Spark',
     'spark.projectLoader.fileTooLarge': 'The project file is too large to load. The limit is {limit} MB.',
+    'gui.sharedMessages.loadFromComputerTitle': 'Load from your computer',
+    'gui.menuBar.theme': 'Theme',
+    'gui.menuBar.colorMode': 'Color Mode',
     'spark.unsupportedBrowser.description': 'We are very sorry, but Spark does not support this browser. We recommend updating to the latest version of a supported browser such as Google Chrome, Microsoft Edge, or Chromium-based browsers.',
     'spark.unsupportedBrowser.notRecommended': 'We are very sorry, but it looks like you are using a browser version that Spark does not support. We recommend updating to the latest version of a supported browser such as Google Chrome, Microsoft Edge, or Chromium-based browsers. ',
     'spark.webglModal.description': 'Unfortunately it looks like your browser or computer <a>{webGlLink}</a>. This technology is needed for Spark to run.'
@@ -97,6 +100,9 @@ const es = {
     'spark.gui.defaultProjectTitle': 'Proyecto de Spark',
     'spark.menuBar.about': 'Acerca de Spark',
     'spark.projectLoader.fileTooLarge': 'El archivo del proyecto es demasiado grande para cargarlo. El límite es de {limit} MB.',
+    'gui.sharedMessages.loadFromComputerTitle': 'Cargar desde tu ordenador',
+    'gui.menuBar.theme': 'Tema',
+    'gui.menuBar.colorMode': 'Modo de color',
     'spark.unsupportedBrowser.description': 'Lo sentimos mucho, pero Spark no es compatible con este navegador. Te recomendamos actualizar a la última versión de un navegador compatible, como Google Chrome, Microsoft Edge o navegadores basados en Chromium.',
     'spark.unsupportedBrowser.notRecommended': 'Lo sentimos mucho, pero parece que estás usando una versión de navegador que Spark no admite. Te recomendamos actualizar a la última versión de un navegador compatible, como Google Chrome, Microsoft Edge o navegadores basados en Chromium. ',
     'spark.webglModal.description': 'Lamentablemente, parece que tu navegador o tu ordenador <a>{webGlLink}</a>. Esta tecnología es necesaria para que Spark funcione.'
@@ -105,7 +111,7 @@ const es = {
 // El español latinoamericano hereda las cadenas de español y puede redefinir
 // términos específicos cuando difieran.
 const es419 = Object.assign({}, es, {
-    // Variantes regionales de Spark pueden añadirse aquí.
+    'gui.sharedMessages.loadFromComputerTitle': 'Cargar desde tu computadora'
 });
 
 const sparkMessages = {en, es, 'es-419': es419};

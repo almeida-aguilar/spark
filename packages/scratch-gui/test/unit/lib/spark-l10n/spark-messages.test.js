@@ -38,6 +38,19 @@ describe('spark-messages', () => {
         expect(messages['spark.menuBar.save']).toBe('Guardar');
     });
 
+    test('Spanish translates core GUI labels missing from upstream scratch-l10n', () => {
+        const esMessages = getSparkMessages('es');
+        const es419Messages = getSparkMessages('es-419');
+
+        expect(esMessages['gui.sharedMessages.loadFromComputerTitle']).toBe('Cargar desde tu ordenador');
+        expect(esMessages['gui.menuBar.theme']).toBe('Tema');
+        expect(esMessages['gui.menuBar.colorMode']).toBe('Modo de color');
+
+        expect(es419Messages['gui.sharedMessages.loadFromComputerTitle']).toBe('Cargar desde tu computadora');
+        expect(es419Messages['gui.menuBar.theme']).toBe('Tema');
+        expect(es419Messages['gui.menuBar.colorMode']).toBe('Modo de color');
+    });
+
     test('unknown locales fall back to the English strings', () => {
         const messages = getSparkMessages('fr');
 
